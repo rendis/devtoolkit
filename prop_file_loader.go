@@ -24,7 +24,7 @@ const (
 // The 'props' parameter is a slice of pointers to struct instances that
 // should be populated with the loaded properties.
 // Returns an error if the file cannot be loaded, parsed, or is of an unsupported format.
-func LoadPropFile(filePath string, props []interface{}) error {
+func LoadPropFile[T any](filePath string, props []T) error {
 	// get the configuration file type (yml or json).
 	fileType, err := getConfigFileType(filePath)
 	if err != nil {
