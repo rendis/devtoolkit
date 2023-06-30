@@ -1,5 +1,10 @@
 # Devtoolkit
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/rendis/devtoolkit)](https://goreportcard.com/report/github.com/rendis/devtoolkit)
+[![Go Reference](https://pkg.go.dev/badge/github.com/rendis/devtoolkit.svg)](https://pkg.go.dev/github.com/rendis/devtoolkit)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Release](https://img.shields.io/github/release/rendis/devtoolkit.svg?style=flat-square)](https://github.com/rendis/devtoolkit/releases)
+
 Devtoolkit is a powerful and ever-expanding toolkit designed to streamline daily tasks in Golang software development. 
 Within this library, you'll find an array of features, such as tools for working with yml or json prop files, slices, handling generic objects, managing concurrency, and more. 
 As Devtoolkit continues to evolve, it will encompass even more functionalities to cater to a variety of programming needs.
