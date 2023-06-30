@@ -1,3 +1,4 @@
+// Package devtoolkit provides a collection of utilities for Golang development.
 package devtoolkit
 
 import (
@@ -7,13 +8,19 @@ import (
 	"sync"
 )
 
-var ConcurrentFnsAlreadyRunning = errors.New("concurrent fns already running")
-var ConcurrentFnsNilContext = errors.New("context must not be nil")
-var ConcurrentFnsNilEmpty = errors.New("fns must not be nil or empty")
+// Error values that can be returned by ConcurrentExec.
+var (
+	ConcurrentExecAlreadyRunningErr = errors.New("concurrent fns already running")
+	ConcurrentExecNilContextErr     = errors.New("context must not be nil")
+	ConcurrentExecFnsNilOrEmptyErr  = errors.New("fns must not be nil or empty")
+)
 
+// ConcurrentFn represents a function that can be executed concurrently. The function receives a context
+// and returns a result and an error.
 type ConcurrentFn func(ctx context.Context) (any, error)
 
-// ConcurrentExec is a struct that allows to execute a slice of ConcurrentFn concurrently
+// ConcurrentExec allows to execute a slice of ConcurrentFn concurrently.
+// The running state, results, errors and context for the concurrent execution are stored within the struct.
 type ConcurrentExec struct {
 	running             bool
 	results             []any
@@ -24,13 +31,15 @@ type ConcurrentExec struct {
 	cancelConcurrencyFn context.CancelFunc
 }
 
+// ExecuteFns receives a context and a slice of functions to execute concurrently.
+// It returns a ConcurrentExecResponse interface and an error if execution could not be started.
 func (ce *ConcurrentExec) ExecuteFns(ctx context.Context, fns ...ConcurrentFn) (ConcurrentExecResponse, error) {
 	if ctx == nil {
-		return nil, ConcurrentFnsNilContext
+		return nil, ConcurrentExecNilContextErr
 	}
 
 	if fns == nil || len(fns) == 0 {
-		return nil, ConcurrentFnsNilEmpty
+		return nil, ConcurrentExecFnsNilOrEmptyErr
 	}
 
 	if err := ce.executeFns(ctx, fns); err != nil {
@@ -74,7 +83,7 @@ func (ce *ConcurrentExec) blockExecution() error {
 	ce.mtx.Lock()
 	defer ce.mtx.Unlock()
 	if ce.running {
-		return ConcurrentFnsAlreadyRunning
+		return ConcurrentExecAlreadyRunningErr
 	}
 	ce.running = true
 	return nil
@@ -87,11 +96,18 @@ func (ce *ConcurrentExec) unblockExecution() {
 	ce.cancelConcurrencyFn()
 }
 
-// ConcurrentExecResponse is the interface returned by ExecuteFns to interact with the results of the concurrent execution
+// ConcurrentExecResponse is the interface returned by ExecuteFns to interact with the results of the concurrent execution.
 type ConcurrentExecResponse interface {
-	Results() []any        // blocks until all fns are done
-	Errors() []error       // blocks until all fns are done
-	CancelExecution()      // cancels the execution of all fns
+	// Results blocks until all functions are done and returns the results.
+	Results() []any // blocks until all fns are done
+
+	// Errors blocks until all functions are done and returns any errors that occurred.
+	Errors() []error // blocks until all fns are done
+
+	// CancelExecution cancels the execution of all functions.
+	CancelExecution() // cancels the execution of all fns
+
+	// Done returns a channel that is closed when all functions are done.
 	Done() <-chan struct{} // returns a channel that is closed when all fns are done
 }
 
