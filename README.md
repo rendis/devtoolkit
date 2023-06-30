@@ -4,6 +4,41 @@ Devtoolkit is a powerful and ever-expanding toolkit designed to streamline daily
 Within this library, you'll find an array of features, such as tools for working with yml or json prop files, slices, handling generic objects, managing concurrency, and more. 
 As Devtoolkit continues to evolve, it will encompass even more functionalities to cater to a variety of programming needs.
 
+## Table of Contents
+- [Devtoolkit](#devtoolkit)
+    * [Installation](#installation)
+    * [Usage](#usage)
+        + [Working with Concurrency](#working-with-concurrency)
+            - [Creating and running concurrent functions](#creating-and-running-concurrent-functions)
+        + [Load Configuration Propertieswith Environment Variables](#load-configuration-propertieswith-environment-variables)
+        + [Working with Generic Objects](#working-with-generic-objects)
+            - [ToPtr](#toptr)
+            - [IsZero](#iszero)
+        + [Working with Slices](#working-with-slices)
+            - [Contains](#contains)
+            - [ContainsWithPredicate](#containswithpredicate)
+            - [IndexOf](#indexof)
+            - [IndexOfWithPredicate](#indexofwithpredicate)
+            - [LastIndexOf](#lastindexof)
+            - [LastIndexOfWithPredicate](#lastindexofwithpredicate)
+            - [Remove](#remove)
+            - [RemoveWithPredicate](#removewithpredicate)
+            - [RemoveAll](#removeall)
+            - [RemoveAllWithPredicate](#removeallwithpredicate)
+            - [RemoveAt](#removeat)
+            - [RemoveRange](#removerange)
+            - [RemoveIf](#removeif)
+            - [Filter](#filter)
+            - [FilterNot](#filternot)
+    * [Map](#map)
+        - [RemoveDuplicates](#removeduplicates)
+        - [Reverse](#reverse)
+        - [Difference](#difference)
+        - [Intersection](#intersection)
+        - [Union](#union)
+    * [Contributions](#contributions)
+    * [License](#license)
+
 ## Installation
 
 ```
@@ -208,7 +243,7 @@ index := LastIndexOf([]int{1, 2, 3, 2, 1}, 2)
 fmt.Println(index) // Output: 3
 ```
 
-##### LastIndexOfWithPredicate
+#### LastIndexOfWithPredicate
 
 `LastIndexOfWithPredicate` returns the index of the last instance of an item in a slice, or -1 if the item is not present in the slice. It uses a predicate function to compare items.
 
