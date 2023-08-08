@@ -35,12 +35,12 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [RemoveIf](#removeif)
             - [Filter](#filter)
             - [FilterNot](#filternot)
-    * [Map](#map)
-        - [RemoveDuplicates](#removeduplicates)
-        - [Reverse](#reverse)
-        - [Difference](#difference)
-        - [Intersection](#intersection)
-        - [Union](#union)
+        + [Map](#map)
+            - [RemoveDuplicates](#removeduplicates)
+            - [Reverse](#reverse)
+            - [Difference](#difference)
+            - [Intersection](#intersection)
+            - [Union](#union)
     * [Contributions](#contributions)
     * [License](#license)
 
@@ -398,7 +398,7 @@ filtered := FilterNot([]int{1, 2, 3, 4, 5}, func(n int) bool { return n%2 == 0 }
 fmt.Println(filtered) // Output: [1 3 5]
 ```
 
-## Map
+### Map
 
 `Map`
 
