@@ -35,12 +35,14 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [RemoveIf](#removeif)
             - [Filter](#filter)
             - [FilterNot](#filternot)
-        + [Map](#map)
+            - [Map](#map)
             - [RemoveDuplicates](#removeduplicates)
             - [Reverse](#reverse)
             - [Difference](#difference)
             - [Intersection](#intersection)
             - [Union](#union)
+        + [Resilience](#resilience)
+            - [RetryOperation](#retryoperation)
     * [Contributions](#contributions)
     * [License](#license)
 
@@ -171,6 +173,8 @@ fmt.Println(devtoolkit.IsZero("")) // Returns true
 ---
 
 ### Working with Slices
+
+Common utility functions for working with slices.
 
 #### Contains
 
@@ -398,11 +402,10 @@ filtered := FilterNot([]int{1, 2, 3, 4, 5}, func(n int) bool { return n%2 == 0 }
 fmt.Println(filtered) // Output: [1 3 5]
 ```
 
-### Map
 
-`Map`
+#### Map
 
-applies a transformation function to all items in a slice and returns a new slice containing the results.
+`Map` applies a transformation function to all items in a slice and returns a new slice containing the results.
 
 ```go
 func Map[T, R any](slice []T, mapper func(T) R) []R 
@@ -490,6 +493,54 @@ Example:
 union := Union([]int{1, 2, 3}, []int{3, 4, 5})
 fmt.Println(union) // Output: [1 2 3 4 5]
 ```
+
+---
+
+### Resilience
+
+Utility functions and patterns to ensure resilient operation execution.
+
+#### RetryOperation
+
+The `RetryOperation` function retries an operation for a specified number of times with optional exponential backoff. It's useful when operations have a tendency to fail temporarily and may succeed on a subsequent attempt.
+
+```go
+type ResilienceOptions struct {
+	MaxRetries *int
+	WaitTime   *time.Duration
+	Backoff    bool
+}
+
+func NewResilience(options *ResilienceOptions) (Resilience, error)
+```
+
+Example:
+```go
+operation := func() error {
+	return networkCall() // Some hypothetical network operation
+}
+options := &devtoolkit.ResilienceOptions{
+	MaxRetries: 3, 
+	WaitTime:   2 * time.Second,
+	Backoff:    true,
+}
+
+resilienceHandler, err := devtoolkit.NewResilience(options)
+
+if err != nil {
+	panic(err)
+}
+
+err = resilienceHandler.RetryOperation(operation)
+
+if err != nil {
+	fmt.Println("Operation failed after retries:", err)
+} else {
+	fmt.Println("Operation succeeded!")
+}
+```
+
+With the `RetryOperation` function, users can easily add resiliency to their operations and ensure that temporary failures don't lead to complete system failures.
 
 ---
 
