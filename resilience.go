@@ -18,9 +18,10 @@ type Resilience interface {
 
 // ResilienceOptions contains configuration parameters for retry operations.
 type ResilienceOptions struct {
-	MaxRetries *int
-	WaitTime   *time.Duration
-	Backoff    bool // indicates whether to use exponential backoff.
+	MaxRetries int           // indicates the maximum number of retries. Default is 3.
+	WaitTime   time.Duration // indicates the wait time between retries. Default is 100ms.
+	Backoff    bool          // indicates whether to use exponential backoff. Default is false.
+	RawError   bool          // indicates whether to return the raw error or wrap it in a new error. Default is false.
 }
 
 // NewResilience returns a new Resilience instance with the provided options or defaults.
@@ -29,22 +30,27 @@ func NewResilience(options *ResilienceOptions) (Resilience, error) {
 		options = &ResilienceOptions{}
 	}
 
-	if options.MaxRetries == nil {
-		options.MaxRetries = &defaultMaxRetries
-	} else if *options.MaxRetries < 0 {
+	if options.MaxRetries < 0 {
 		return nil, errors.New("MaxRetries cannot be negative")
 	}
 
-	if options.WaitTime == nil {
-		options.WaitTime = &defaultWaitTime
-	} else if *options.WaitTime < 0 {
+	if options.MaxRetries == 0 {
+		options.MaxRetries = defaultMaxRetries
+	}
+
+	if options.WaitTime < 0 {
 		return nil, errors.New("WaitTime cannot be negative")
 	}
 
+	if options.WaitTime == 0 {
+		options.WaitTime = defaultWaitTime
+	}
+
 	return &resilience{
-		maxRetries: *options.MaxRetries,
-		waitTime:   *options.WaitTime,
+		maxRetries: options.MaxRetries,
+		waitTime:   options.WaitTime,
 		backoff:    options.Backoff,
+		rawError:   options.RawError,
 	}, nil
 }
 
@@ -52,6 +58,7 @@ type resilience struct {
 	maxRetries int
 	waitTime   time.Duration
 	backoff    bool
+	rawError   bool
 }
 
 func (r *resilience) RetryOperation(operation func() error) error {
@@ -71,5 +78,8 @@ func (r *resilience) RetryOperation(operation func() error) error {
 		}
 	}
 
-	return errors.Join(lastErr, fmt.Errorf("max retries exceeded (%d)", r.maxRetries))
+	if r.rawError {
+		return lastErr
+	}
+	return errors.Join(lastErr, errors.New(fmt.Sprintf("max retries exceeded (%d)", r.maxRetries)))
 }

@@ -506,9 +506,10 @@ The `RetryOperation` function retries an operation for a specified number of tim
 
 ```go
 type ResilienceOptions struct {
-	MaxRetries *int
-	WaitTime   *time.Duration
-	Backoff    bool
+	MaxRetries int              // indicates the maximum number of retries. Default (0) is 3.
+	WaitTime   time.Duration    // indicates the wait time between retries. Default (0) is 100ms.
+	Backoff    bool             // indicates whether to use exponential backoff. Default is false.
+	RawError   bool             // indicates whether to return the raw error or wrap it in a new error. Default is false.
 }
 
 func NewResilience(options *ResilienceOptions) (Resilience, error)
@@ -531,10 +532,10 @@ if err != nil {
 	panic(err)
 }
 
-err = resilienceHandler.RetryOperation(operation)
+err = resilienceHandler.RetryOperation(operation) // wrapped error returned
 
 if err != nil {
-	fmt.Println("Operation failed after retries:", err)
+	fmt.Println("Operation failed.", err)
 } else {
 	fmt.Println("Operation succeeded!")
 }
