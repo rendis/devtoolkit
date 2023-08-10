@@ -31,6 +31,10 @@ type ConcurrentExec struct {
 	cancelConcurrencyFn context.CancelFunc
 }
 
+func NewConcurrentExec() *ConcurrentExec {
+	return &ConcurrentExec{}
+}
+
 // ExecuteFns receives a context and a slice of functions to execute concurrently.
 // It returns a ConcurrentExecResponse interface and an error if execution could not be started.
 func (ce *ConcurrentExec) ExecuteFns(ctx context.Context, fns ...ConcurrentFn) (ConcurrentExecResponse, error) {
@@ -74,7 +78,14 @@ func (ce *ConcurrentExec) executorWorker(pos int, fn ConcurrentFn) {
 	result, err := fn(ce.concurrencyCtx)
 	ce.errs[pos] = err
 	val := reflect.ValueOf(result)
-	if !val.IsNil() {
+
+	// if result is not pointer
+	if val.Kind() != reflect.Ptr {
+		ce.results[pos] = result
+	}
+
+	// if result is pointer and not nil
+	if val.Kind() == reflect.Ptr && !val.IsNil() {
 		ce.results[pos] = result
 	}
 }
