@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // configFileType represents the supported configuration file formats.
@@ -18,13 +20,17 @@ const (
 	jsonType                       // JSON file type
 )
 
+var validatorCustomFuncs = map[string]func(fl validator.FieldLevel) bool{
+	"trimmed-non-empty": trimmedNonEmpty,
+}
+
 // LoadPropFile loads configuration properties from a file into the provided
 // slice of structs. The file format can be either YAML or JSON.
 // The 'filePath' parameter specifies the path to the configuration file.
 // The 'props' parameter is a slice of pointers to struct instances that
 // should be populated with the loaded properties.
 // Returns an error if the file cannot be loaded, parsed, or is of an unsupported format.
-func LoadPropFile[T any](filePath string, props []T) error {
+func LoadPropFile(filePath string, props []any) error {
 	// get the configuration file type (yml or json).
 	fileType, err := getConfigFileType(filePath)
 	if err != nil {
@@ -48,14 +54,26 @@ func LoadPropFile[T any](filePath string, props []T) error {
 		return fmt.Errorf("invalid config file '%s' type. only 'yml' and 'json' are supported", filePath)
 	}
 
-	// parse the configuration file and populate the provided structs.
+	// parse the configuration file and validate the properties.
 	var parseErr error
+	var validate = newValidator()
 	for _, prop := range props {
+		// parse
 		if err := parseFn(propArr, prop); err != nil {
 			if parseErr == nil {
 				parseErr = err
 			} else {
-				parseErr = fmt.Errorf("%v; %w", parseErr, err)
+				parseErr = errors.Join(parseErr, err)
+			}
+			continue
+		}
+
+		// validate
+		if err := validate.Struct(prop); err != nil {
+			if parseErr == nil {
+				parseErr = err
+			} else {
+				parseErr = errors.Join(parseErr, err)
 			}
 		}
 	}
@@ -115,4 +133,27 @@ func parseFromJson(propArr []byte, prop interface{}) error {
 		log.Fatalf("error parsing JSON file to struct '%v': %v", prop, err)
 	}
 	return nil
+}
+
+// newValidator returns a new validator instance with the required struct enabled.
+func newValidator() *validator.Validate {
+	v := validator.New(validator.WithRequiredStructEnabled())
+	for name, fn := range validatorCustomFuncs {
+		if err := v.RegisterValidation(name, fn); err != nil {
+			log.Fatalf("error registering custom validator function '%s': %v", name, err)
+		}
+	}
+	return v
+}
+
+// RegisterCustomValidator registers a custom validator function with the validator.
+func RegisterCustomValidator(name string, fn func(fl validator.FieldLevel) bool) {
+	validatorCustomFuncs[name] = fn
+}
+
+// trimmedNonEmpty validates that a string is not empty after trimming.
+func trimmedNonEmpty(fl validator.FieldLevel) bool {
+	s := fl.Field().String()
+	trimmed := strings.TrimSpace(s)
+	return len(trimmed) > 0
 }

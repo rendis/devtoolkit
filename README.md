@@ -103,11 +103,18 @@ Note: This example does not include error handling, be sure to do so in your imp
 
 ---
 
-### Load Configuration Propertieswith Environment Variables
+### Load properties from file with environment variables injections
 
 Utility functions for loading configuration properties from JSON or YAML files.
 This functionality supports the injection of environment variables directly into the configuration properties.
 
+`LoadPropFile` supports field validation using struct tags provided by the [go-playground/validator](https://github.com/go-playground/validator/v10) library.
+
+You can register your own custom validators using the `RegisterCustomValidator` function.
+
+`devtoolkit` provides the following built-in validators:
+- `trimmed-non-empty` - checks whether a string is not empty after trimming whitespace
+ 
 ```yaml
 dbConfig:
   host: ${DB_HOST}
@@ -131,19 +138,28 @@ dbConfig:
 
 ```go
 type Config struct {
-    DBConfig `json:"dbConfig" yaml:"dbConfig"`
+    DBConfig `json:"dbConfig" yaml:"dbConfig" validate:"required"`
 }
 
 type DBConfig struct {
-    Host string `json:"host" yaml:"host"`
-    Port int `json:"port" yaml:"port"`
-    Username string `json:"username" yaml:"username"`
-    Password string `json:"password" yaml:"password"`
-    Description string `json:"description" yaml:"description"`
+    Host string `json:"host" yaml:"host" validate:"required"`
+    Port int `json:"port" yaml:"port" validate:"required,min=1,max=65535"`
+    Username string `json:"username" yaml:"username" validate:"required,trimmed-non-empty"`
+    Password string `json:"password" yaml:"password" validate:"required,trimmed-non-empty"`
+    Description string `json:"description" yaml:"description" validate:"required"`
+}
+
+func trimmedNonEmpty(fl validator.FieldLevel) bool {
+    s := fl.Field().String()
+    trimmed := strings.TrimSpace(s)
+    return len(trimmed) > 0
 }
 
 cfg := &Config{}
-err := devtoolkit.LoadPropFile("config.json", cfg)
+props := []any{cfg}
+devtoolkit.RegisterCustomValidator("trimmed-non-empty", trimmedNonEmpty)
+err := devtoolkit.LoadPropFile("config.json", props)
+
 ```
 
 ---
