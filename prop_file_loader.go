@@ -24,13 +24,19 @@ var validatorCustomFuncs = map[string]func(fl validator.FieldLevel) bool{
 	"trimmed-non-empty": trimmedNonEmpty,
 }
 
+// ToolKitProp is an interface that must be implemented by all configuration property structs.
+// It provides a method to set default values for the properties.
+type ToolKitProp interface {
+	SetDefaults()
+}
+
 // LoadPropFile loads configuration properties from a file into the provided
 // slice of structs. The file format can be either YAML or JSON.
 // The 'filePath' parameter specifies the path to the configuration file.
 // The 'props' parameter is a slice of pointers to struct instances that
 // should be populated with the loaded properties.
 // Returns an error if the file cannot be loaded, parsed, or is of an unsupported format.
-func LoadPropFile(filePath string, props []any) error {
+func LoadPropFile(filePath string, props []ToolKitProp) error {
 	// get the configuration file type (yml or json).
 	fileType, err := getConfigFileType(filePath)
 	if err != nil {
@@ -75,7 +81,11 @@ func LoadPropFile(filePath string, props []any) error {
 			} else {
 				parseErr = errors.Join(parseErr, err)
 			}
+			continue
 		}
+
+		// set default
+		prop.SetDefaults()
 	}
 
 	return parseErr

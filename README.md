@@ -149,6 +149,11 @@ type DBConfig struct {
     Description string `json:"description" yaml:"description" validate:"required"`
 }
 
+func (p *Config) SetDefaults() {
+    p.DBConfig.Host = "localhost"
+    p.DBConfig.Port = 3306
+}
+
 func trimmedNonEmpty(fl validator.FieldLevel) bool {
     s := fl.Field().String()
     trimmed := strings.TrimSpace(s)
@@ -156,7 +161,7 @@ func trimmedNonEmpty(fl validator.FieldLevel) bool {
 }
 
 cfg := &Config{}
-props := []any{cfg}
+props := []devtoolkit.ToolKitProp{cfg}
 devtoolkit.RegisterCustomValidator("trimmed-non-empty", trimmedNonEmpty)
 err := devtoolkit.LoadPropFile("config.json", props)
 
