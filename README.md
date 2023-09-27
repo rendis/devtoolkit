@@ -15,7 +15,7 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
     * [Usage](#usage)
         + [Working with Concurrency](#working-with-concurrency)
             - [Creating and running concurrent functions](#creating-and-running-concurrent-functions)
-        + [Load Configuration Propertieswith Environment Variables](#load-configuration-propertieswith-environment-variables)
+        + [Load properties from a file with environment variable injections and validations](#load-properties-from-a-file-with-environment-variable-injections-and-validations)
         + [Working with Generic Objects](#working-with-generic-objects)
             - [ToPtr](#toptr)
             - [IsZero](#iszero)
@@ -103,7 +103,7 @@ Note: This example does not include error handling, be sure to do so in your imp
 
 ---
 
-### Load properties from file with environment variables injections
+### Load properties from a file with environment variable injections and validations
 
 Utility functions for loading configuration properties from JSON or YAML files.
 This functionality supports the injection of environment variables directly into the configuration properties.
