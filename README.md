@@ -19,6 +19,8 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
         + [Working with Generic Objects](#working-with-generic-objects)
             - [ToPtr](#toptr)
             - [IsZero](#iszero)
+            - [StructToMap](#structtomap)
+            - [MapToStruct](#maptostruct)
         + [Data structures](#data-structures)
             - [Pair](#pair)
             - [Triple](#triple)
@@ -192,6 +194,36 @@ The `IsZero` function checks whether a value is the zero value of its type.
 fmt.Println(devtoolkit.IsZero(0)) // Returns true
 fmt.Println(devtoolkit.IsZero(1)) // Returns false
 fmt.Println(devtoolkit.IsZero("")) // Returns true
+```
+
+#### StructToMap
+
+The `StructToMap` function converts a struct to a `map[string]any`.
+
+```go
+type Person struct {
+	Name  string `json:"name"`
+	Age   int    `json:"age"`
+	Email string `json:"email"`
+}
+
+p := Person{
+    Name:  "John",
+    Age:   30,
+    Email: "john@example.com",
+}
+
+personMapData, err := devtoolkit.StructToMap(p)
+```
+
+
+#### MapToStruct
+
+The `MapToStruct` function converts a `map[string]any` to a pointer to a struct.
+
+```go
+// personMapData is a map[string]any containing the data of a Person struct, see StructToMap example
+ptrToNewPerson, err := devtoolkit.MapToStruct[Person](personMapData)
 ```
 
 ---
