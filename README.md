@@ -19,6 +19,9 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
         + [Working with Generic Objects](#working-with-generic-objects)
             - [ToPtr](#toptr)
             - [IsZero](#iszero)
+        + [Data structures](#data-structures)
+            - [Pair](#pair)
+            - [Triple](#triple)
         + [Working with Slices](#working-with-slices)
             - [Contains](#contains)
             - [ContainsWithPredicate](#containswithpredicate)
@@ -189,6 +192,33 @@ The `IsZero` function checks whether a value is the zero value of its type.
 fmt.Println(devtoolkit.IsZero(0)) // Returns true
 fmt.Println(devtoolkit.IsZero(1)) // Returns false
 fmt.Println(devtoolkit.IsZero("")) // Returns true
+```
+
+---
+
+### Data structures
+
+#### Pair
+
+The `Pair` type represents a pair of values.
+
+```go
+type Pair[F any, S any] struct {
+    First  F
+    Second S
+}
+```
+
+#### Triple
+
+The `Triple` type represents a triple of values.
+
+```go
+type Triple[F any, S any, T any] struct {
+    First  F
+    Second S
+    Third  T
+}
 ```
 
 ---
