@@ -115,6 +115,9 @@ type ConcurrentExecResponse interface {
 	// Errors blocks until all functions are done and returns any errors that occurred.
 	Errors() []error // blocks until all fns are done
 
+	// GetNotNilErrors blocks until all functions are done and returns any errors that occurred that are not nil.
+	GetNotNilErrors() []error // blocks until all fns are done
+
 	// CancelExecution cancels the execution of all functions.
 	CancelExecution() // cancels the execution of all fns
 
@@ -132,6 +135,18 @@ func (ce *ConcurrentExec) Errors() []error {
 	ce.concurrencyWg.Wait()
 	ce.unblockExecution()
 	return ce.errs
+}
+
+func (ce *ConcurrentExec) GetNotNilErrors() []error {
+	ce.concurrencyWg.Wait()
+	ce.unblockExecution()
+	var notNilErrors []error
+	for _, err := range ce.errs {
+		if err != nil {
+			notNilErrors = append(notNilErrors, err)
+		}
+	}
+	return notNilErrors
 }
 
 func (ce *ConcurrentExec) CancelExecution() {
