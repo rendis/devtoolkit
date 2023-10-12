@@ -249,3 +249,12 @@ func Union[T comparable](slice, other []T) []T {
 	}
 	return union
 }
+
+// GetMapKeys returns a new slice containing all keys from the given map.
+func GetMapKeys[K comparable, V any](m map[K]V) []K {
+	var keys []K
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}

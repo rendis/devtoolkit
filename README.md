@@ -46,6 +46,7 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [Difference](#difference)
             - [Intersection](#intersection)
             - [Union](#union)
+            - [GetMapKeys](#getmapkeys)
         + [Resilience](#resilience)
             - [RetryOperation](#retryoperation)
     * [Contributions](#contributions)
@@ -575,6 +576,20 @@ Example:
 ```go
 union := Union([]int{1, 2, 3}, []int{3, 4, 5})
 fmt.Println(union) // Output: [1 2 3 4 5]
+```
+
+#### GetMapKeys
+`GetMapKeys` returns a slice of keys from a map.
+
+```go
+func GetMapKeys[K comparable, V any](m map[K]V) []K
+```
+
+Example:
+
+```go
+keys := GetMapKeys(map[string]int{"a": 1, "b": 2})
+fmt.Println(keys) // Output: [a b]
 ```
 
 ---
