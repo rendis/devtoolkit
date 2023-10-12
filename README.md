@@ -21,6 +21,7 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [IsZero](#iszero)
             - [StructToMap](#structtomap)
             - [MapToStruct](#maptostruct)
+            - [CastToPointer](#casttopointer)
         + [Data structures](#data-structures)
             - [Pair](#pair)
             - [Triple](#triple)
@@ -227,6 +228,21 @@ The `MapToStruct` function converts a `map[string]any` to a pointer to a struct.
 // personMapData is a map[string]any containing the data of a Person struct, see StructToMap example
 ptrToNewPerson, err := devtoolkit.MapToStruct[Person](personMapData)
 ```
+
+#### CastToPointer
+`CastToPointer` casts a value to a pointer of the same type.
+
+```go
+func CastToPointer[T any](v any) (*T, bool)
+```
+
+Rules:
+- v must be a pointer.
+- if v not a pointer, returns false.
+- if v is nil, returns false.
+- if v is a pointer but not of the given type, returns false.
+- if v is a pointer of the given type, returns true.
+
 
 ---
 
