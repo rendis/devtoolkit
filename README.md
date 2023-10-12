@@ -47,6 +47,7 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [Intersection](#intersection)
             - [Union](#union)
             - [GetMapKeys](#getmapkeys)
+            - [GetMapValues](#getmapvalues)
         + [Resilience](#resilience)
             - [RetryOperation](#retryoperation)
     * [Contributions](#contributions)
@@ -590,6 +591,24 @@ Example:
 ```go
 keys := GetMapKeys(map[string]int{"a": 1, "b": 2})
 fmt.Println(keys) // Output: [a b]
+```
+
+
+#### GetMapValues
+`GetMapValues` returns a slice of values from a map.
+
+```go
+func GetMapValues[K comparable, V any](m map[K]V, removeDuplicates bool) []V
+```
+
+Example:
+
+```go
+values := GetMapValues(map[string]int{"a": 1, "b": 2, "c": 1}, false)
+fmt.Println(values) // Output: [1 2 1]
+
+values = GetMapValues(map[string]int{"a": 1, "b": 2, "c": 1}, true)
+fmt.Println(values) // Output: [1 2]
 ```
 
 ---

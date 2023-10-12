@@ -258,3 +258,17 @@ func GetMapKeys[K comparable, V any](m map[K]V) []K {
 	}
 	return keys
 }
+
+// GetMapValues returns a new slice containing all values from the given map.
+// Note that the order of values is not guaranteed
+func GetMapValues[K comparable, V comparable](m map[K]V, removeDuplicates bool) []V {
+	var repeated = make(map[V]bool)
+	var values []V
+	for _, v := range m {
+		if !removeDuplicates || !repeated[v] {
+			values = append(values, v)
+			repeated[v] = true
+		}
+	}
+	return values
+}
