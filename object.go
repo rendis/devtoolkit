@@ -52,17 +52,19 @@ func MapToStruct[T any](m map[string]any) (*T, error) {
 // if v is a pointer but not of the given type, returns false.
 // if v is a pointer of the given type, returns true.
 func CastToPointer[T any](v any) (*T, bool) {
-	// v must be a pointer
 	vType := reflect.TypeOf(v)
+
+	// v must not be nil
+	if vType == nil {
+		return nil, false
+	}
+
+	// v must be a pointer
 	if vType.Kind() != reflect.Ptr {
 		return nil, false
 	}
 
-	// v must not be nil
-	if v == nil {
-		return nil, false
-	}
-
+	// cast v to *T
 	resp, ok := v.(*T)
 	if !ok {
 		return nil, false
