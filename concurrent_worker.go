@@ -14,6 +14,7 @@ type ConcurrentWorkers struct {
 	maxWorkers int
 	ch         chan struct{}
 	wg         sync.WaitGroup
+	err        error
 	closed     bool
 	closeOnce  sync.Once
 }
@@ -36,20 +37,18 @@ func (cw *ConcurrentWorkers) Execute(fn func()) {
 
 func (cw *ConcurrentWorkers) Wait() {
 	cw.wg.Wait()
+	cw.close(nil)
 }
 
-func (cw *ConcurrentWorkers) Close() {
+func (cw *ConcurrentWorkers) Stop(err error) {
+	cw.close(err)
+	cw.wg.Wait()
+}
+
+func (cw *ConcurrentWorkers) close(err error) {
 	cw.closeOnce.Do(func() {
 		cw.closed = true
+		cw.err = err
 		close(cw.ch)
 	})
-}
-
-func (cw *ConcurrentWorkers) WaitAndClose() {
-	cw.Wait()
-	cw.Close()
-}
-
-func (cw *ConcurrentWorkers) Stop() {
-	cw.Close()
 }

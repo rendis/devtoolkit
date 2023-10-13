@@ -124,11 +124,14 @@ for i := 0; i < 10; i++ {
    })
 }
 
-// Wait for all workers to finish
+// Wait for all workers to finish and close the channel
 cw.Wait()
 
-// Clean up
-cw.Close()
+// Stop the workers with an error
+cw.Stop(fmt.Errorf("Something went wrong"))
+
+// Stop the workers without an error
+cw.Stop(nil)
 ```
 
 ---
