@@ -49,3 +49,7 @@ func (cw *ConcurrentWorkers) WaitAndClose() {
 	cw.Wait()
 	cw.Close()
 }
+
+func (cw *ConcurrentWorkers) Stop() {
+	cw.Close()
+}
