@@ -45,6 +45,10 @@ func (cw *ConcurrentWorkers) Stop(err error) {
 	cw.wg.Wait()
 }
 
+func (cw *ConcurrentWorkers) GetError() error {
+	return cw.err
+}
+
 func (cw *ConcurrentWorkers) close(err error) {
 	cw.closeOnce.Do(func() {
 		cw.closed = true
