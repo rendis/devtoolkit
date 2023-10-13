@@ -13,8 +13,9 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
 - [Devtoolkit](#devtoolkit)
     * [Installation](#installation)
     * [Usage](#usage)
-        + [Working with Concurrency](#working-with-concurrency)
-            - [Creating and running concurrent functions](#creating-and-running-concurrent-functions)
+        + [Execute functions concurrently](#execute-functions-concurrently)
+            - [Running concurrent functions](#running-concurrent-functions)
+            - [Running concurrent workers](#running-concurrent-workers)
         + [Load properties from a file with environment variable injections and validations](#load-properties-from-a-file-with-environment-variable-injections-and-validations)
         + [Working with Generic Objects](#working-with-generic-objects)
             - [ToPtr](#toptr)
@@ -62,12 +63,12 @@ go get github.com/rendis/devtoolkit
 
 ## Usage
 
-### Working with Concurrency
+### Execute functions concurrently
 
-For handling concurrency, devtoolkit provides a `ConcurrentExec` type that allows to execute a series of functions concurrently.
+For handling concurrency, devtoolkit provides `ConcurrentExec` and `ConcurrentWorkers` that allows to execute a series of functions concurrently.
 The library offers a convenient way to manage concurrent execution, allowing to cancel execution, retrieve results and errors, and check when execution is done.
 
-#### Creating and running concurrent functions
+#### Running concurrent functions
 
 Here's an example of how to create and run concurrent functions with `ConcurrentExec`.
 
@@ -108,6 +109,27 @@ for _, res := range results {
 ```
 
 Note: This example does not include error handling, be sure to do so in your implementations.
+
+#### Running concurrent workers
+
+Here's an example of how to create and run concurrent workers with `ConcurrentWorkers`.
+
+```go
+var maxWorkers = 5
+var cw = NewConcurrentWorkers(maxWorkers)
+
+for i := 0; i < 10; i++ {
+   cw.Execute(func() {
+      // do something cool
+   })
+}
+
+// Wait for all workers to finish
+cw.Wait()
+
+// Clean up
+cw.Close()
+```
 
 ---
 
