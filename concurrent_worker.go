@@ -6,30 +6,32 @@ func NewConcurrentWorkers(maxWorkers int) *ConcurrentWorkers {
 	return &ConcurrentWorkers{
 		maxWorkers: maxWorkers,
 		ch:         make(chan struct{}, maxWorkers),
-		closed:     false,
 	}
 }
 
 type ConcurrentWorkers struct {
 	maxWorkers int
+	closed     bool
+	err        error
 	ch         chan struct{}
 	wg         sync.WaitGroup
-	err        error
-	closed     bool
 	closeOnce  sync.Once
+	mu         sync.Mutex
 }
 
 func (cw *ConcurrentWorkers) Execute(fn func()) {
+	cw.mu.Lock()
 	if cw.closed {
 		return
 	}
-
 	cw.ch <- struct{}{}
+	cw.mu.Unlock()
+
 	cw.wg.Add(1)
 	go func() {
 		defer func() {
-			<-cw.ch
 			cw.wg.Done()
+			<-cw.ch
 		}()
 		fn()
 	}()
@@ -42,7 +44,6 @@ func (cw *ConcurrentWorkers) Wait() {
 
 func (cw *ConcurrentWorkers) Stop(err error) {
 	cw.close(err)
-	cw.wg.Wait()
 }
 
 func (cw *ConcurrentWorkers) IsOpen() bool {
@@ -55,8 +56,10 @@ func (cw *ConcurrentWorkers) GetError() error {
 
 func (cw *ConcurrentWorkers) close(err error) {
 	cw.closeOnce.Do(func() {
-		cw.closed = true
+		cw.mu.Lock()
 		cw.err = err
+		cw.closed = true
 		close(cw.ch)
+		cw.mu.Unlock()
 	})
 }
