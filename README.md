@@ -23,6 +23,7 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [StructToMap](#structtomap)
             - [MapToStruct](#maptostruct)
             - [CastToPointer](#casttopointer)
+            - [IfThenElse](#ifthenelse)
         + [Data structures](#data-structures)
             - [Pair](#pair)
             - [Triple](#triple)
@@ -268,6 +269,13 @@ Rules:
 - if v is a pointer but not of the given type, returns false.
 - if v is a pointer of the given type, returns true.
 
+
+#### IfThenElse
+`IfThenElse` returns the first value if the condition is true, otherwise it returns the second value.
+
+```go
+func IfThenElse[T any](condition bool, first, second T) T
+```
 
 ---
 
