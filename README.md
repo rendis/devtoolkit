@@ -24,6 +24,8 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [MapToStruct](#maptostruct)
             - [CastToPointer](#casttopointer)
             - [IfThenElse](#ifthenelse)
+            - [ToInt](#toint)
+            - [ToFloat64](#tofloat64)
         + [Data structures](#data-structures)
             - [Pair](#pair)
             - [Triple](#triple)
@@ -276,6 +278,22 @@ Rules:
 ```go
 func IfThenElse[T any](condition bool, first, second T) T
 ```
+
+#### ToInt
+`ToInt` converts a value to an int.
+
+```go
+func ToInt(value any) (int, bool)
+```
+
+
+#### ToFloat64
+`ToFloat64` converts a value to a float64.
+
+```go
+func ToFloat64(value any) (float64, bool)
+```
+
 
 ---
 

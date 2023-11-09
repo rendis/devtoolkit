@@ -80,3 +80,47 @@ func IfThenElse[T any](condition bool, a, b T) T {
 	}
 	return b
 }
+
+// ToInt converts the given value to int.
+func ToInt(value any) (int, bool) {
+	switch v := value.(type) {
+	case float64:
+		return int(v), true
+	case float32:
+		return int(v), true
+	case int:
+		return v, true
+	case int64:
+		return int(v), true
+	case int32:
+		return int(v), true
+	case int16:
+		return int(v), true
+	case int8:
+		return int(v), true
+	default:
+		return 0, false
+	}
+}
+
+// ToFloat64 converts the given value to float64.
+func ToFloat64(value any) (float64, bool) {
+	switch v := value.(type) {
+	case float64:
+		return v, true
+	case float32:
+		return float64(v), true
+	case int:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	case int32:
+		return float64(v), true
+	case int16:
+		return float64(v), true
+	case int8:
+		return float64(v), true
+	default:
+		return 0, false
+	}
+}
