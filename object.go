@@ -73,12 +73,20 @@ func CastToPointer[T any](v any) (*T, bool) {
 	return resp, true
 }
 
-// IfThenElse returns a if condition is true, otherwise returns b.
+// IfThenElse returns 'a' if condition is true, otherwise returns 'b'.
 func IfThenElse[T any](condition bool, a, b T) T {
 	if condition {
 		return a
 	}
 	return b
+}
+
+// IfThenElseFn returns 'a' if condition is true, otherwise returns 'b'.
+func IfThenElseFn[T any](condition bool, a, b func() T) T {
+	if condition {
+		return a()
+	}
+	return b()
 }
 
 // ToInt converts the given value to int.

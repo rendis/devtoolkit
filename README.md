@@ -24,6 +24,7 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [MapToStruct](#maptostruct)
             - [CastToPointer](#casttopointer)
             - [IfThenElse](#ifthenelse)
+            - [IfThenElseFn](#ifthenelsefn)
             - [ToInt](#toint)
             - [ToFloat64](#tofloat64)
         + [Data structures](#data-structures)
@@ -277,6 +278,13 @@ Rules:
 
 ```go
 func IfThenElse[T any](condition bool, first, second T) T
+```
+
+#### IfThenElseFn
+`IfThenElseFn` returns the first value if the condition is true, otherwise it returns the result of the second value.
+
+```go
+func IfThenElseFn[T any](condition bool, first T, second func() T) T
 ```
 
 #### ToInt
