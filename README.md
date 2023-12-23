@@ -25,6 +25,7 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [CastToPointer](#casttopointer)
             - [IfThenElse](#ifthenelse)
             - [IfThenElseFn](#ifthenelsefn)
+            - [DefaultIfNil](#defaultifnil)
             - [ToInt](#toint)
             - [ToFloat64](#tofloat64)
         + [Data structures](#data-structures)
@@ -285,6 +286,13 @@ func IfThenElse[T any](condition bool, first, second T) T
 
 ```go
 func IfThenElseFn[T any](condition bool, first T, second func() T) T
+```
+
+#### DefaultIfNil
+`DefaultIfNil` returns the first value if it is not nil, otherwise it returns the second value.
+
+```go
+func DefaultIfNil[T any](first, second T) T
 ```
 
 #### ToInt

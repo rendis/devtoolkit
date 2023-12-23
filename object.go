@@ -89,6 +89,14 @@ func IfThenElseFn[T any](condition bool, a, b func() T) T {
 	return b()
 }
 
+// DefaultIfNil returns 'a' if 'a' is not nil, otherwise returns 'b'.
+func DefaultIfNil[T any](a, b T) T {
+	if a != nil {
+		return a
+	}
+	return b
+}
+
 // ToInt converts the given value to int.
 func ToInt(value any) (int, bool) {
 	switch v := value.(type) {
