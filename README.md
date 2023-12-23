@@ -292,7 +292,7 @@ func IfThenElseFn[T any](condition bool, first T, second func() T) T
 `DefaultIfNil` returns the first value if it is not nil, otherwise it returns the second value.
 
 ```go
-func DefaultIfNil[T any](first, second T) T
+func DefaultIfNil[T any](first *T, second T) T
 ```
 
 #### ToInt

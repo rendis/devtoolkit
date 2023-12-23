@@ -90,9 +90,9 @@ func IfThenElseFn[T any](condition bool, a, b func() T) T {
 }
 
 // DefaultIfNil returns 'a' if 'a' is not nil, otherwise returns 'b'.
-func DefaultIfNil[T any](a, b T) T {
+func DefaultIfNil[T any](a *T, b T) T {
 	if a != nil {
-		return a
+		return *a
 	}
 	return b
 }
