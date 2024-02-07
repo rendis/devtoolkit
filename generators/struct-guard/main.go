@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+
 	loadProp()
 
 	// exclude files to map
@@ -62,20 +63,19 @@ func main() {
 			filesArr = append(filesArr, file)
 		}
 		code := genCode(filesArr)
-
 		saveFile(genCodeFile, code)
 	}
 }
 
 func genCode(files []string) string {
-	packageName, structs, err := extractStructsFromFiles(files)
+	analysis, err := extractStructsFromFilesInSamePackage(files)
 	if err != nil {
 		panic(err)
 	}
 
 	var codes string
 
-	for _, structMap := range structs {
+	for _, structMap := range analysis.structs {
 		for k, v := range structMap {
 			wrapperName := *confProps.GeneratedStructPrefix + k + *confProps.GeneratedStructPostfix
 			t := template.Must(template.New(wrapperName).Parse(wrapperStructTemplate))
@@ -99,8 +99,26 @@ func genCode(files []string) string {
 		}
 	}
 
-	// add the package name to the generated code
-	codes = fmt.Sprintf("package %s%s", packageName, codes)
+	// generate the header
+	t := template.Must(template.New("header").Parse(wrapperHeaderTemplate))
+	var b bytes.Buffer
+	var imports []string
+	for k := range analysis.imports {
+		imports = append(imports, k)
+	}
+	err = t.Execute(&b, struct {
+		PackageName string
+		Imports     []string
+		Content     string
+	}{
+		PackageName: analysis.packageName,
+		Imports:     imports,
+		Content:     codes,
+	})
 
-	return codes
+	if err != nil {
+		panic(err)
+	}
+
+	return b.String()
 }
