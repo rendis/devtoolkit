@@ -34,16 +34,73 @@ func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}() {{.FieldType}} {
     return w.{{$typeName}}.{{.OriginalName}}
 }
 
+// Get{{.FieldNameUpperCamel}}WithChange returns the value of {{$typeName}}.{{.OriginalName}} and a boolean indicating if the value has changed
+func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}WithChange() ({{.FieldType}}, bool) {
+    return w.{{$typeName}}.{{.OriginalName}}, w.changes.{{.FieldNameLowerCamel}}Changed
+}
+
 // Set{{.FieldNameUpperCamel}} sets the value of {{$typeName}}.{{.OriginalName}}
 func (w *{{$wrapperName}}) Set{{.FieldNameUpperCamel}}(value {{.FieldType}}) {
     w.{{$typeName}}.{{.OriginalName}} = value
     w.changes.{{.FieldNameLowerCamel}}Changed = true
 }
 
-// Get{{.FieldNameUpperCamel}}WithChange returns the value of {{$typeName}}.{{.OriginalName}} and a boolean indicating if the value has changed
-func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}WithChange() ({{.FieldType}}, bool) {
-    return w.{{$typeName}}.{{.OriginalName}}, w.changes.{{.FieldNameLowerCamel}}Changed
+{{- if eq .IsArray "true" }}
+// GetLast{{.FieldNameUpperCamel}} returns the last value of {{$typeName}}.{{.OriginalName}}
+func (w *{{$wrapperName}}) GetLast{{.FieldNameUpperCamel}}() ({{.ComposedTypeDesc1}}, bool) {
+	if len(w.{{$typeName}}.{{.OriginalName}}) == 0 {
+		var zero {{.ComposedTypeDesc1}}
+		return zero, false
+	}
+	return w.{{$typeName}}.{{.OriginalName}}[len(w.{{$typeName}}.{{.OriginalName}})-1], true
 }
+
+// GetLast{{.FieldNameUpperCamel}}WithChange returns the last value of {{$typeName}}.{{.OriginalName}} and a boolean indicating if the value has changed
+func (w *{{$wrapperName}}) GetLast{{.FieldNameUpperCamel}}WithChange() ({{.ComposedTypeDesc1}}, bool) {
+	if len(w.{{$typeName}}.{{.OriginalName}}) == 0 {
+		var zero {{.ComposedTypeDesc1}}
+		return zero, w.changes.{{.FieldNameLowerCamel}}Changed
+	}
+	return w.{{$typeName}}.{{.OriginalName}}[len(w.{{$typeName}}.{{.OriginalName}})-1], w.changes.{{.FieldNameLowerCamel}}Changed
+}
+
+// AppendTo{{.FieldNameUpperCamel}} appends a value to {{$typeName}}.{{.OriginalName}}
+func (w *{{$wrapperName}}) AppendTo{{.FieldNameUpperCamel}}(value {{.ComposedTypeDesc1}}) {
+	w.{{$typeName}}.{{.OriginalName}} = append(w.{{$typeName}}.{{.OriginalName}}, value)
+	w.changes.{{.FieldNameLowerCamel}}Changed = true
+}
+{{ end }}
+
+{{- if eq .IsMap "true" }}
+// AddTo{{.FieldNameUpperCamel}} adds a value to {{$typeName}}.{{.OriginalName}}
+func (w *{{$wrapperName}}) AddTo{{.FieldNameUpperCamel}}(key {{.ComposedTypeDesc1}}, value {{.ComposedTypeDesc2}}) {
+	if w.{{$typeName}}.{{.OriginalName}} == nil {
+		w.{{$typeName}}.{{.OriginalName}} = make({{.FieldType}})
+	}
+	w.{{$typeName}}.{{.OriginalName}}[key] = value
+	w.changes.{{.FieldNameLowerCamel}}Changed = true
+}
+
+// RemoveFrom{{.FieldNameUpperCamel}} removes a value from {{$typeName}}.{{.OriginalName}}
+func (w *{{$wrapperName}}) RemoveFrom{{.FieldNameUpperCamel}}(key {{.ComposedTypeDesc1}}) {
+	if w.{{$typeName}}.{{.OriginalName}} == nil {
+		return
+	}
+	delete(w.{{$typeName}}.{{.OriginalName}}, key)
+	w.changes.{{.FieldNameLowerCamel}}Changed = true
+}
+
+// Get{{.FieldNameUpperCamel}}Value returns the value of {{$typeName}}.{{.OriginalName}} for the given key
+func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}Value(key {{.ComposedTypeDesc1}}) ({{.ComposedTypeDesc2}}, bool) {
+	if w.{{$typeName}}.{{.OriginalName}} == nil {
+		var zero {{.ComposedTypeDesc2}}
+		return zero, false
+	}
+	value, ok := w.{{$typeName}}.{{.OriginalName}}[key]
+	return value, ok
+}
+{{ end }}
+
 {{ end }}
 
 // ToBuilder returns a builder for {{$wrapperName}}
@@ -78,5 +135,12 @@ func (b *{{$wrapperName}}Builder) With{{.FieldNameUpperCamel}}(value {{.FieldTyp
 // New{{$wrapperName}} returns a new {{$wrapperName}}
 func New{{$wrapperName}}() *{{$wrapperName}} {
     return &{{$wrapperName}}{}
+}
+
+// New{{$wrapperName}}From returns a new {{$wrapperName}} with the given {{$typeName}}
+func New{{$wrapperName}}From({{$typeName}} {{$typeName}}) *{{$wrapperName}} {
+	return &{{$wrapperName}}{
+		{{$typeName}}: {{$typeName}},
+	}
 }
 `

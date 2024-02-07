@@ -1,10 +1,19 @@
 package main
 
 import (
+	"github.com/rendis/devtoolkit"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"strings"
+)
+
+type fieldComposedType int32
+
+const (
+	fieldComposedTypeComposed fieldComposedType = iota
+	fieldComposedTypeArray
+	fieldComposedTypeMap
 )
 
 type structsAnalysis struct {
@@ -25,7 +34,7 @@ func extractStructsFromFilesInSamePackage(filesPath []string) (*structsAnalysis,
 		if structs.packageName == "" {
 			structs.packageName = pqName
 		}
-		//structs = append(structs, structMap)
+
 		structs.structs = append(structs.structs, structMap)
 		for k := range imports {
 			structs.imports[k] = struct{}{}
@@ -82,7 +91,7 @@ func extractStructsFromFile(filePath string) (string, map[string]bool, map[strin
 			var fields []map[string]string
 			for _, field := range structType.Fields.List {
 				for _, fieldName := range field.Names {
-					fieldType, ok := getFieldTypeFromExpr(field.Type, "")
+					fieldTypeStr, composedTyp, composedTypDesc1, composedTypDesc2, ok := getFieldTypeFromExpr(field.Type, "")
 					if !ok {
 						continue
 					}
@@ -91,7 +100,11 @@ func extractStructsFromFile(filePath string) (string, map[string]bool, map[strin
 						"OriginalName":        fieldName.Name,
 						"FieldNameLowerCamel": firstToLower(fieldName.Name),
 						"FieldNameUpperCamel": firstToUpper(fieldName.Name),
-						"FieldType":           fieldType,
+						"FieldType":           fieldTypeStr,
+						"IsArray":             devtoolkit.IfThenElse(composedTyp == fieldComposedTypeArray, "true", "false"),
+						"IsMap":               devtoolkit.IfThenElse(composedTyp == fieldComposedTypeMap, "true", "false"),
+						"ComposedTypeDesc1":   composedTypDesc1,
+						"ComposedTypeDesc2":   composedTypDesc2,
 					})
 				}
 			}
@@ -118,35 +131,38 @@ func firstToUpper(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-func getFieldTypeFromExpr(typ ast.Expr, prefix string) (string, bool) {
-	switch typ.(type) {
+func getFieldTypeFromExpr(expr ast.Expr, prefix string) (string, fieldComposedType, string, string, bool) {
+	switch expr.(type) {
 	case *ast.Ident:
-		fieldType := prefix + typ.(*ast.Ident).Name
-		return fieldType, true
+		typ := prefix + expr.(*ast.Ident).Name
+		return typ, fieldComposedTypeComposed, "", "", true
 	case *ast.StarExpr:
-		return getFieldTypeFromExpr(typ.(*ast.StarExpr).X, prefix+"*")
+		return getFieldTypeFromExpr(expr.(*ast.StarExpr).X, prefix+"*")
 	case *ast.SelectorExpr:
-		se := typ.(*ast.SelectorExpr)
-		fieldType := se.X.(*ast.Ident).Name + "." + se.Sel.Name
-		fieldType = prefix + fieldType
-		return fieldType, true
+		se := expr.(*ast.SelectorExpr)
+		typ := se.X.(*ast.Ident).Name + "." + se.Sel.Name
+		typ = prefix + typ
+		return typ, fieldComposedTypeComposed, "", "", true
 	case *ast.ArrayType:
-		at := typ.(*ast.ArrayType)
-		return getFieldTypeFromExpr(at.Elt, prefix+"[]")
+		at := expr.(*ast.ArrayType)
+		//typ, _, ok := getFieldTypeFromExpr(at.Elt, prefix+"[]")
+		withoutPrefixTyp, _, _, _, ok := getFieldTypeFromExpr(at.Elt, prefix)
+		typ := "[]" + withoutPrefixTyp
+		return typ, fieldComposedTypeArray, withoutPrefixTyp, "", ok
 	case *ast.MapType:
-		mt := typ.(*ast.MapType)
-		keyType, ok := getFieldTypeFromExpr(mt.Key, "")
+		mt := expr.(*ast.MapType)
+		keyType, _, _, _, ok := getFieldTypeFromExpr(mt.Key, "")
 		if !ok {
-			return "", false
+			return "", fieldComposedTypeComposed, "", "", false
 		}
 
-		valueType, ok := getFieldTypeFromExpr(mt.Value, "")
+		valueType, _, _, _, ok := getFieldTypeFromExpr(mt.Value, "")
 		if !ok {
-			return "", false
+			return "", fieldComposedTypeComposed, "", "", false
 		}
-		fieldType := prefix + "map[" + keyType + "]" + valueType
-		return fieldType, true
+		typ := prefix + "map[" + keyType + "]" + valueType
+		return typ, fieldComposedTypeMap, keyType, valueType, true
 	}
 
-	return "", false
+	return "", fieldComposedTypeComposed, "", "", false
 }
