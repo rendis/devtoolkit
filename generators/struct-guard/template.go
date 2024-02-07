@@ -101,6 +101,22 @@ func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}Value(key {{.ComposedTypeD
 }
 {{ end }}
 
+{{- if eq .IsPtr "true" }}
+// Is{{.FieldNameUpperCamel}}Nil returns true if {{$typeName}}.{{.OriginalName}} is nil
+func (w *{{$wrapperName}}) Is{{.FieldNameUpperCamel}}Nil() bool {
+	return w.{{$typeName}}.{{.OriginalName}} == nil
+}
+
+// Get{{.FieldNameUpperCamel}}Value returns the value of {{$typeName}}.{{.OriginalName}} and a boolean indicating if the value is not nil
+func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}Value() ({{.PtrFieldType}}, bool) {
+	if w.{{$typeName}}.{{.OriginalName}} == nil {
+		var zero {{.PtrFieldType}}
+		return zero, false
+	}
+	return *w.{{$typeName}}.{{.OriginalName}}, true
+}
+{{ end }}
+
 {{ end }}
 
 // ToBuilder returns a builder for {{$wrapperName}}
