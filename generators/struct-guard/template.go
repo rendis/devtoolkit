@@ -115,6 +115,15 @@ func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}Value() ({{.PtrFieldType}}
 	}
 	return *w.{{$typeName}}.{{.OriginalName}}, true
 }
+
+// Get{{.FieldNameUpperCamel}}OrZeroValue returns the value of {{$typeName}}.{{.OriginalName}} and a zero value if the value is nil
+func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}OrZeroValue() {{.PtrFieldType}} {
+	if w.{{$typeName}}.{{.OriginalName}} == nil {
+		var zero {{.PtrFieldType}}
+		return zero
+	}
+	return *w.{{$typeName}}.{{.OriginalName}}
+}
 {{ end }}
 
 {{ end }}
