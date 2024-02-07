@@ -13,14 +13,14 @@ func main() {
 
 	// exclude files to map
 	var excludeFilesMap = make(map[string]bool)
-	for _, file := range confProps.ExcludeFilesToScan {
+	for _, file := range generatorProp.ExcludeFilesToScan {
 		file = filepath.Clean(file)
 		excludeFilesMap[file] = true
 	}
 
 	// extract to scan
 	var filesToScanMap = make(map[string]map[string]struct{})
-	for _, path := range confProps.ToScan {
+	for _, path := range generatorProp.ToScan {
 		if isDirectory(path) {
 			dir := filepath.Clean(path)
 			files, err := listGoFiles(dir)
@@ -29,7 +29,7 @@ func main() {
 			}
 			for _, file := range files {
 				fileName := filepath.Base(file)
-				if excludeFilesMap[file] || filepath.Ext(file) != ".go" || fileName == *confProps.GeneratedFileName {
+				if excludeFilesMap[file] || filepath.Ext(file) != ".go" || fileName == *generatorProp.GeneratedFileName {
 					continue
 				}
 				if filesToScanMap[dir] == nil {
@@ -40,7 +40,7 @@ func main() {
 		} else {
 			file := filepath.Clean(path)
 			fileName := filepath.Base(file)
-			if excludeFilesMap[file] || filepath.Ext(file) != ".go" || fileName == *confProps.GeneratedFileName {
+			if excludeFilesMap[file] || filepath.Ext(file) != ".go" || fileName == *generatorProp.GeneratedFileName {
 				continue
 			}
 
@@ -55,7 +55,7 @@ func main() {
 
 	// process files
 	for dir, files := range filesToScanMap {
-		genCodeFile := filepath.Join(dir, *confProps.GeneratedFileName)
+		genCodeFile := filepath.Join(dir, *generatorProp.GeneratedFileName)
 		removeFile(genCodeFile)
 
 		filesArr := make([]string, 0, len(files))
@@ -77,7 +77,12 @@ func genCode(files []string) string {
 
 	for _, structMap := range analysis.structs {
 		for k, v := range structMap {
-			wrapperName := *confProps.GeneratedStructPrefix + k + *confProps.GeneratedStructPostfix
+			wrapperName := *generatorProp.GeneratedStructPrefix + k + *generatorProp.GeneratedStructPostfix
+
+			if generatorProp.ForceExport {
+				wrapperName = firstToUpper(wrapperName)
+			}
+
 			t := template.Must(template.New(wrapperName).Parse(wrapperStructTemplate))
 			var b bytes.Buffer
 

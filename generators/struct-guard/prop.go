@@ -11,9 +11,9 @@ const (
 	defaultGoFile = "codegen.go"
 )
 
-var confProps *StructGuardProp
+var generatorProp *StructGuardProp
 
-type GeneratorConfProp struct {
+type GeneratorsConfProp struct {
 	*GeneratorsProp `yaml:"generators" validate:"required"`
 }
 
@@ -27,9 +27,10 @@ type StructGuardProp struct {
 	GeneratedStructPostfix *string  `yaml:"generated-struct-postfix"`
 	ToScan                 []string `yaml:"to-scan"`
 	ExcludeFilesToScan     []string `yaml:"exclude-files-to-scan"`
+	ForceExport            bool     `yaml:"force-export"`
 }
 
-func (p *GeneratorConfProp) SetDefaults() {
+func (p *GeneratorsConfProp) SetDefaults() {
 	if p.GeneratorsProp == nil {
 		p.GeneratorsProp = &GeneratorsProp{}
 	}
@@ -61,12 +62,12 @@ func (p *StructGuardProp) SetDefaults() {
 }
 
 func loadGenProp() {
-	p := &GeneratorConfProp{}
+	p := &GeneratorsConfProp{}
 	var props = []devtoolkit.ToolKitProp{p}
 
 	if err := devtoolkit.LoadPropFile(propFilePath, props); err != nil {
 		log.Fatalf("failed to load prop file '%s'.\n%v", propFilePath, err)
 	}
 
-	confProps = p.GeneratorsProp.StructGuard
+	generatorProp = p.GeneratorsProp.StructGuard
 }
