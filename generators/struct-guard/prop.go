@@ -7,17 +7,21 @@ import (
 )
 
 const (
-	propFilePath  = "codegen.yml"
+	propFilePath  = "devtoolkit.yml"
 	defaultGoFile = "codegen.go"
 )
 
-var confProps *GeneratorConfProp
+var confProps *StructGuardProp
 
 type GeneratorConfProp struct {
-	*GeneratorProp `yaml:"code-generator" validate:"required"`
+	*GeneratorsProp `yaml:"generators" validate:"required"`
 }
 
-type GeneratorProp struct {
+type GeneratorsProp struct {
+	StructGuard *StructGuardProp `yaml:"struct-guard" validate:"required"`
+}
+
+type StructGuardProp struct {
 	GeneratedFileName      *string  `yaml:"generated-file-name"`
 	GeneratedStructPrefix  *string  `yaml:"generated-struct-prefix"`
 	GeneratedStructPostfix *string  `yaml:"generated-struct-postfix"`
@@ -26,34 +30,43 @@ type GeneratorProp struct {
 }
 
 func (p *GeneratorConfProp) SetDefaults() {
-	if p.GeneratorProp == nil {
-		p.GeneratorProp = &GeneratorProp{}
+	if p.GeneratorsProp == nil {
+		p.GeneratorsProp = &GeneratorsProp{}
 	}
 
-	if p.GeneratorProp.GeneratedFileName == nil {
-		p.GeneratorProp.GeneratedFileName = devtoolkit.ToPtr(defaultGoFile)
+	if p.GeneratorsProp.StructGuard == nil {
+		p.GeneratorsProp.StructGuard = &StructGuardProp{}
+	}
+
+	// set defaults
+	p.GeneratorsProp.StructGuard.SetDefaults()
+}
+
+func (p *StructGuardProp) SetDefaults() {
+	if p.GeneratedFileName == nil {
+		p.GeneratedFileName = devtoolkit.ToPtr(defaultGoFile)
 	} else {
-		if ext := filepath.Ext(*p.GeneratorProp.GeneratedFileName); ext != ".go" {
-			*p.GeneratorProp.GeneratedFileName = *p.GeneratorProp.GeneratedFileName + ".go"
+		if ext := filepath.Ext(*p.GeneratedFileName); ext != ".go" {
+			*p.GeneratedFileName = *p.GeneratedFileName + ".go"
 		}
 	}
 
-	if p.GeneratorProp.GeneratedStructPrefix == nil {
-		p.GeneratorProp.GeneratedStructPrefix = devtoolkit.ToPtr("")
+	if p.GeneratedStructPrefix == nil {
+		p.GeneratedStructPrefix = devtoolkit.ToPtr("")
 	}
 
-	if p.GeneratorProp.GeneratedStructPostfix == nil {
-		p.GeneratorProp.GeneratedStructPostfix = devtoolkit.ToPtr("Wrapper")
+	if p.GeneratedStructPostfix == nil {
+		p.GeneratedStructPostfix = devtoolkit.ToPtr("Wrapper")
 	}
 }
 
-func loadProp() {
-	confProps = &GeneratorConfProp{}
-	var props = []devtoolkit.ToolKitProp{
-		confProps,
-	}
+func loadGenProp() {
+	p := &GeneratorConfProp{}
+	var props = []devtoolkit.ToolKitProp{p}
 
 	if err := devtoolkit.LoadPropFile(propFilePath, props); err != nil {
 		log.Fatalf("failed to load prop file '%s'.\n%v", propFilePath, err)
 	}
+
+	confProps = p.GeneratorsProp.StructGuard
 }

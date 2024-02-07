@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	loadProp()
+	loadGenProp()
 
 	// exclude files to map
 	var excludeFilesMap = make(map[string]bool)
