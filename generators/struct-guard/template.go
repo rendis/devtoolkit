@@ -28,6 +28,11 @@ type {{$typeName}}Changes struct {
     {{- end }}
 }
 
+// ResetChanges resets the changes in {{$typeName}}
+func (w *{{$wrapperName}}) ResetChanges() {
+	w.changes = {{$typeName}}Changes{}
+}
+
 {{- range .Fields }}
 // Get{{.FieldNameUpperCamel}} returns the value of {{$typeName}}.{{.OriginalName}}
 func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}() {{.FieldType}} {
