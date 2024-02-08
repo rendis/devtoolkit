@@ -173,6 +173,7 @@ func getFieldTypeFromExpr(expr ast.Expr) *fieldTypeInfo {
 		return &fieldTypeInfo{
 			fieldTypeStr:     "map[" + keyInfo.fieldTypeStr + "]" + valueInfo.fieldTypeStr,
 			composedTyp:      fieldComposedTypeMap,
+			isMap:            true,
 			composedTypDesc1: keyInfo.fieldTypeStr,
 			composedTypDesc2: valueInfo.fieldTypeStr,
 		}

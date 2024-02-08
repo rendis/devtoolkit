@@ -91,8 +91,11 @@ func (w *{{$wrapperName}}) RemoveFrom{{.FieldNameUpperCamel}}(key {{.ComposedTyp
 	if w.{{$typeName}}.{{.OriginalName}} == nil {
 		return
 	}
-	delete(w.{{$typeName}}.{{.OriginalName}}, key)
-	w.changes.{{.FieldNameLowerCamel}}Changed = true
+
+	if _, ok := w.{{$typeName}}.{{.OriginalName}}[key]; ok {
+		delete(w.{{$typeName}}.{{.OriginalName}}, key)
+		w.changes.{{.FieldNameLowerCamel}}Changed = true
+	}
 }
 
 // Get{{.FieldNameUpperCamel}}Value returns the value of {{$typeName}}.{{.OriginalName}} for the given key
