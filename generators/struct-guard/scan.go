@@ -5,7 +5,6 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"strings"
 )
 
 type fieldComposedType int32
@@ -20,6 +19,17 @@ type structsAnalysis struct {
 	packageName string
 	imports     map[string]struct{}
 	structs     []map[string][]map[string]string
+}
+
+type fieldTypeInfo struct {
+	fieldTypeStr     string
+	composedTyp      fieldComposedType
+	isArray          bool
+	isMap            bool
+	isPtr            bool
+	ptrFieldTypeStr  string
+	composedTypDesc1 string
+	composedTypDesc2 string
 }
 
 func extractStructsFromFilesInSamePackage(filesPath []string) (*structsAnalysis, error) {
@@ -55,67 +65,8 @@ func extractStructsFromFile(filePath string) (string, map[string]struct{}, map[s
 	var imports = make(map[string]struct{})
 
 	for _, decl := range node.Decls {
-		genDecl, ok := decl.(*ast.GenDecl)
-
-		if !ok {
-			continue
-		}
-
-		if genDecl.Tok == token.IMPORT {
-			for _, spec := range genDecl.Specs {
-				importSpec, ok := spec.(*ast.ImportSpec)
-				if !ok {
-					continue
-				}
-				var alias string
-				if importSpec.Name != nil {
-					alias = importSpec.Name.Name + " "
-				}
-				importPath := alias + importSpec.Path.Value
-				imports[importPath] = struct{}{}
-			}
-			continue
-		}
-
-		if genDecl.Tok != token.TYPE {
-			continue
-		}
-
-		for _, spec := range genDecl.Specs {
-			typeSpec, ok := spec.(*ast.TypeSpec)
-			if !ok {
-				continue
-			}
-
-			structType, ok := typeSpec.Type.(*ast.StructType)
-			if !ok {
-				continue
-			}
-
-			var fields []map[string]string
-			for _, field := range structType.Fields.List {
-				for _, fieldName := range field.Names {
-					fieldInfo := getFieldTypeFromExpr(field.Type)
-					if fieldInfo == nil {
-						continue
-					}
-
-					fields = append(fields, map[string]string{
-						"OriginalName":        fieldName.Name,
-						"FieldNameLowerCamel": firstToLower(fieldName.Name),
-						"FieldNameUpperCamel": firstToUpper(fieldName.Name),
-						"FieldType":           fieldInfo.fieldTypeStr,
-						"IsArray":             fmt.Sprintf("%t", fieldInfo.isArray),
-						"IsMap":               fmt.Sprintf("%t", fieldInfo.isMap),
-						"IsPtr":               fmt.Sprintf("%t", fieldInfo.isPtr),
-						"PtrFieldType":        fieldInfo.ptrFieldTypeStr,
-						"ComposedTypeDesc1":   fieldInfo.composedTypDesc1,
-						"ComposedTypeDesc2":   fieldInfo.composedTypDesc2,
-					})
-				}
-			}
-
-			structs[typeSpec.Name.Name] = fields
+		if genDecl, ok := decl.(*ast.GenDecl); ok {
+			processGenDecl(genDecl, imports, structs)
 		}
 	}
 
@@ -123,32 +74,65 @@ func extractStructsFromFile(filePath string) (string, map[string]struct{}, map[s
 	return packageName, imports, structs, nil
 }
 
-func firstToLower(s string) string {
-	if s == "" {
-		return ""
+func processGenDecl(genDecl *ast.GenDecl, imports map[string]struct{}, structs map[string][]map[string]string) {
+	if genDecl.Tok == token.IMPORT {
+		for _, spec := range genDecl.Specs {
+			importSpec, ok := spec.(*ast.ImportSpec)
+			if !ok {
+				continue
+			}
+			var alias string
+			if importSpec.Name != nil {
+				alias = importSpec.Name.Name + " "
+			}
+			importPath := alias + importSpec.Path.Value
+			imports[importPath] = struct{}{}
+		}
+		return
 	}
-	return strings.ToLower(s[:1]) + s[1:]
-}
 
-func firstToUpper(s string) string {
-	if s == "" {
-		return ""
+	if genDecl.Tok != token.TYPE {
+		return
 	}
-	return strings.ToUpper(s[:1]) + s[1:]
+
+	for _, spec := range genDecl.Specs {
+		typeSpec, ok := spec.(*ast.TypeSpec)
+		if !ok {
+			continue
+		}
+
+		structType, ok := typeSpec.Type.(*ast.StructType)
+		if !ok {
+			continue
+		}
+
+		var fields []map[string]string
+		for _, field := range structType.Fields.List {
+			for _, fieldName := range field.Names {
+				fieldInfo := getFieldTypeFromExpr(field.Type)
+				if fieldInfo == nil {
+					continue
+				}
+
+				fields = append(fields, map[string]string{
+					"OriginalName":        fieldName.Name,
+					"FieldNameLowerCamel": firstToLower(fieldName.Name),
+					"FieldNameUpperCamel": firstToUpper(fieldName.Name),
+					"FieldType":           fieldInfo.fieldTypeStr,
+					"IsArray":             fmt.Sprintf("%t", fieldInfo.isArray),
+					"IsMap":               fmt.Sprintf("%t", fieldInfo.isMap),
+					"IsPtr":               fmt.Sprintf("%t", fieldInfo.isPtr),
+					"PtrFieldType":        fieldInfo.ptrFieldTypeStr,
+					"ComposedTypeDesc1":   fieldInfo.composedTypDesc1,
+					"ComposedTypeDesc2":   fieldInfo.composedTypDesc2,
+				})
+			}
+		}
+
+		structs[typeSpec.Name.Name] = fields
+	}
 }
 
-type fieldTypeInfo struct {
-	fieldTypeStr     string
-	composedTyp      fieldComposedType
-	isArray          bool
-	isMap            bool
-	isPtr            bool
-	ptrFieldTypeStr  string
-	composedTypDesc1 string
-	composedTypDesc2 string
-}
-
-// func getFieldTypeFromExpr(expr ast.Expr, prefix string) (string, fieldComposedType, string, string, bool) {
 func getFieldTypeFromExpr(expr ast.Expr) *fieldTypeInfo {
 	switch expr.(type) {
 	case *ast.Ident:
