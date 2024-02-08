@@ -43,16 +43,16 @@ func extractStructsFromFilesInSamePackage(filesPath []string) (*structsAnalysis,
 	return structs, nil
 }
 
-func extractStructsFromFile(filePath string) (string, map[string]bool, map[string][]map[string]string, error) {
-	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
+func extractStructsFromFile(filePath string) (string, map[string]struct{}, map[string][]map[string]string, error) {
+	fSet := token.NewFileSet()
+	node, err := parser.ParseFile(fSet, filePath, nil, parser.ParseComments)
 	if err != nil {
 		return "", nil, nil, err
 	}
 
 	var structs = make(map[string][]map[string]string)
 
-	var imports = make(map[string]bool)
+	var imports = make(map[string]struct{})
 
 	for _, decl := range node.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
@@ -67,8 +67,12 @@ func extractStructsFromFile(filePath string) (string, map[string]bool, map[strin
 				if !ok {
 					continue
 				}
-				importPath := strings.Trim(importSpec.Path.Value, "\"")
-				imports[importPath] = false
+				var alias string
+				if importSpec.Name != nil {
+					alias = importSpec.Name.Name + " "
+				}
+				importPath := alias + importSpec.Path.Value
+				imports[importPath] = struct{}{}
 			}
 			continue
 		}
@@ -156,9 +160,9 @@ func getFieldTypeFromExpr(expr ast.Expr) *fieldTypeInfo {
 		typeInfo := getFieldTypeFromExpr(expr.(*ast.StarExpr).X)
 		return &fieldTypeInfo{
 			fieldTypeStr:    "*" + typeInfo.fieldTypeStr,
+			ptrFieldTypeStr: typeInfo.fieldTypeStr,
 			composedTyp:     fieldComposedTypeNotComposed,
 			isPtr:           true,
-			ptrFieldTypeStr: typeInfo.fieldTypeStr,
 		}
 	case *ast.SelectorExpr:
 		se := expr.(*ast.SelectorExpr)

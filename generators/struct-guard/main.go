@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"golang.org/x/tools/imports"
 	"path/filepath"
 	"text/template"
 )
@@ -107,9 +108,9 @@ func genCode(files []string) string {
 	// generate the header
 	t := template.Must(template.New("header").Parse(wrapperHeaderTemplate))
 	var b bytes.Buffer
-	var imports []string
+	var fileImports []string
 	for k := range analysis.imports {
-		imports = append(imports, k)
+		fileImports = append(fileImports, k)
 	}
 	err = t.Execute(&b, struct {
 		PackageName string
@@ -117,7 +118,7 @@ func genCode(files []string) string {
 		Content     string
 	}{
 		PackageName: analysis.packageName,
-		Imports:     imports,
+		Imports:     fileImports,
 		Content:     codes,
 	})
 
@@ -125,5 +126,18 @@ func genCode(files []string) string {
 		panic(err)
 	}
 
-	return b.String()
+	opt := &imports.Options{
+		Comments:   true,
+		TabIndent:  true,
+		TabWidth:   8,
+		FormatOnly: false,
+	}
+
+	bb, err := imports.Process("", b.Bytes(), opt)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return string(bb)
 }
