@@ -77,10 +77,17 @@ func (w *{{$wrapperName}}) AppendTo{{.FieldNameUpperCamel}}(value {{.ComposedTyp
 {{ end }}
 
 {{- if eq .IsMap "true" }}
+// Init{{.FieldNameUpperCamel}} initializes {{$typeName}}.{{.OriginalName}} if it is nil
+func (w *{{$wrapperName}}) Init{{.FieldNameUpperCamel}}() {
+	if w.{{$typeName}}.{{.OriginalName}} == nil {
+		w.{{$typeName}}.{{.OriginalName}} = make({{.FieldType}})
+	}
+}
+
 // AddTo{{.FieldNameUpperCamel}} adds a value to {{$typeName}}.{{.OriginalName}}
 func (w *{{$wrapperName}}) AddTo{{.FieldNameUpperCamel}}(key {{.ComposedTypeDesc1}}, value {{.ComposedTypeDesc2}}) {
 	if w.{{$typeName}}.{{.OriginalName}} == nil {
-		w.{{$typeName}}.{{.OriginalName}} = make({{.FieldType}})
+		w.Init{{.FieldNameUpperCamel}}()
 	}
 	w.{{$typeName}}.{{.OriginalName}}[key] = value
 	w.changes.{{.FieldNameLowerCamel}}Changed = true
@@ -106,13 +113,6 @@ func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}Value(key {{.ComposedTypeD
 	}
 	value, ok := w.{{$typeName}}.{{.OriginalName}}[key]
 	return value, ok
-}
-
-// Init{{.FieldNameUpperCamel}} initializes {{$typeName}}.{{.OriginalName}} if it is nil
-func (w *{{$wrapperName}}) Init{{.FieldNameUpperCamel}}() {
-	if w.{{$typeName}}.{{.OriginalName}} == nil {
-		w.{{$typeName}}.{{.OriginalName}} = make({{.FieldType}})
-	}
 }
 {{ end }}
 
