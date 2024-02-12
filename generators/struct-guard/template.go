@@ -107,6 +107,13 @@ func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}Value(key {{.ComposedTypeD
 	value, ok := w.{{$typeName}}.{{.OriginalName}}[key]
 	return value, ok
 }
+
+// Init{{.FieldNameUpperCamel}} initializes {{$typeName}}.{{.OriginalName}} if it is nil
+func (w *{{$wrapperName}}) Init{{.FieldNameUpperCamel}}() {
+	if w.{{$typeName}}.{{.OriginalName}} == nil {
+		w.{{$typeName}}.{{.OriginalName}} = make({{.FieldType}})
+	}
+}
 {{ end }}
 
 {{- if eq .IsPtr "true" }}
