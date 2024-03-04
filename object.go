@@ -98,6 +98,7 @@ func DefaultIfNil[T any](a *T, b T) T {
 }
 
 // ToInt converts the given value to int.
+// Converts float64, float32, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8 to int.
 func ToInt(value any) (int, bool) {
 	switch v := value.(type) {
 	case float64:
@@ -113,6 +114,16 @@ func ToInt(value any) (int, bool) {
 	case int16:
 		return int(v), true
 	case int8:
+		return int(v), true
+	case uint:
+		return int(v), true
+	case uint64:
+		return int(v), true
+	case uint32:
+		return int(v), true
+	case uint16:
+		return int(v), true
+	case uint8:
 		return int(v), true
 	default:
 		return 0, false
@@ -135,6 +146,16 @@ func ToFloat64(value any) (float64, bool) {
 	case int16:
 		return float64(v), true
 	case int8:
+		return float64(v), true
+	case uint:
+		return float64(v), true
+	case uint64:
+		return float64(v), true
+	case uint32:
+		return float64(v), true
+	case uint16:
+		return float64(v), true
+	case uint8:
 		return float64(v), true
 	default:
 		return 0, false
