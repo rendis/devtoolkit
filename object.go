@@ -97,6 +97,12 @@ func DefaultIfNil[T any](a *T, b T) T {
 	return b
 }
 
+// ZeroValue returns the zero value of the given type.
+func ZeroValue[T any]() T {
+	var zero T
+	return zero
+}
+
 // ToInt converts the given value to int.
 // Converts float64, float32, int, int64, int32, int16, int8, uint, uint64, uint32, uint16, uint8 to int.
 func ToInt(value any) (int, bool) {

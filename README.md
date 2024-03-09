@@ -26,6 +26,7 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [IfThenElse](#ifthenelse)
             - [IfThenElseFn](#ifthenelsefn)
             - [DefaultIfNil](#defaultifnil)
+            - [ZeroValue](#zerovalue)
             - [ToInt](#toint)
             - [ToFloat64](#tofloat64)
         + [Data structures](#data-structures)
@@ -293,6 +294,13 @@ func IfThenElseFn[T any](condition bool, first T, second func() T) T
 
 ```go
 func DefaultIfNil[T any](first *T, second T) T
+```
+
+#### ZeroValue
+`ZeroValue` returns the zero value of a type.
+
+```go
+func ZeroValue[T any]() T
 ```
 
 #### ToInt
