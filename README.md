@@ -58,6 +58,8 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [GetMapValues](#getmapvalues)
         + [Resilience](#resilience)
             - [RetryOperation](#retryoperation)
+        + [Design Patterns](#design-patterns)
+            - [Process Chain](#process-chain)
     * [Contributions](#contributions)
     * [License](#license)
 
@@ -752,6 +754,50 @@ if err != nil {
 With the `RetryOperation` function, users can easily add resiliency to their operations and ensure that temporary failures don't lead to complete system failures.
 
 ---
+
+### Design Patterns
+
+#### Process Chain
+`ProcessChain` is an implementation that enables the orderly execution of operations on data within a Go application. 
+Leveraging the "Chain of Responsibility" and "Command" design patterns, it allows for the addition of operations (links) 
+and an optional save step to ensure data integrity after each operation. Ideal for scenarios requiring a series of 
+actions on data with the flexibility to add, remove, or modify steps as needed.
+
+```go
+type ProcessChain[T any] interface {
+    AddLink(string, LinkFn[T]) error
+    SetSaveStep(SaveStep[T])
+    Execute(T) ([]string, error)
+    GetChain() []string
+}
+
+func NewProcessChain[T any]() ProcessChain[T]
+```
+
+Example:
+```go
+type Data struct {
+    // Your data fields here
+}
+
+func step1(d Data) error {
+    // Define a process operation
+}
+
+func step2(d Data) error {
+    // Define a process operation
+}
+
+func saveData(d Data) error {
+    // Define a save operation
+}
+
+chain := NewProcessChain[Data]()
+chain.AddLink("step1", step1)
+chain.AddLink("step2", step2)
+chain.SetSaveStep(saveData)
+err := chain.Execute(Data{})
+```
 
 ## Contributions
 
