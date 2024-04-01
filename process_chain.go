@@ -1,10 +1,13 @@
 package devtoolkit
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 type (
-	LinkFn[T any]   func(T) error
-	SaveStep[T any] func(T) error
+	LinkFn[T any]   func(context.Context, T) error
+	SaveStep[T any] func(context.Context, T) error
 )
 
 var (
@@ -27,7 +30,7 @@ type ProcessChain[T any] interface {
 	// each link in the order they were added.
 	// It returns a slice of string keys representing the successfully executed links and an error if the execution
 	// of any link fails.
-	Execute(T) ([]string, error)
+	Execute(context.Context, T) ([]string, error)
 
 	// GetChain returns a slice of string keys representing the sequence of links added to the chain.
 	GetChain() []string
@@ -63,7 +66,7 @@ func (p *processChain[T]) SetSaveStep(s SaveStep[T]) {
 	p.saveStep = s
 }
 
-func (p *processChain[T]) Execute(t T) ([]string, error) {
+func (p *processChain[T]) Execute(ctx context.Context, t T) ([]string, error) {
 	var successExecutedLinks []string
 
 	for _, link := range p.linksSeq {
@@ -72,12 +75,12 @@ func (p *processChain[T]) Execute(t T) ([]string, error) {
 			continue
 		}
 
-		if err := p.links[link](t); err != nil {
+		if err := p.links[link](ctx, t); err != nil {
 			return successExecutedLinks, err
 		}
 
 		if p.saveStep != nil {
-			if err := p.saveStep(t); err != nil {
+			if err := p.saveStep(ctx, t); err != nil {
 				return successExecutedLinks, err
 			}
 		}
