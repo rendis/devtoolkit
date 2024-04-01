@@ -767,9 +767,9 @@ actions on data with the flexibility to add, remove, or modify steps as needed.
 type ProcessChain[T any] interface {
     AddLink(string, LinkFn[T]) error
     SetSaveStep(SaveStep[T])
-    Execute(T) ([]string, error)
     GetChain() []string
-	SetIgnorableLinks([]string)
+    Execute(context.Context, T) ([]string, error)
+    ExecuteWithIgnorableLinks(context.Context, T, []string) ([]string, error)
 }
 
 func NewProcessChain[T any]() ProcessChain[T]
