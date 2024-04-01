@@ -31,6 +31,9 @@ type ProcessChain[T any] interface {
 
 	// GetChain returns a slice of string keys representing the sequence of links added to the chain.
 	GetChain() []string
+
+	// SetIgnorableLinks sets a list of links that can be ignored during the execution of the chain.
+	SetIgnorableLinks([]string)
 }
 
 // NewProcessChain creates and returns a new instance of a process chain for data of type T.
@@ -41,9 +44,10 @@ func NewProcessChain[T any]() ProcessChain[T] {
 }
 
 type processChain[T any] struct {
-	links    map[string]LinkFn[T]
-	linksSeq []string
-	saveStep SaveStep[T]
+	links          map[string]LinkFn[T]
+	linksSeq       []string
+	ignorableLinks map[string]bool
+	saveStep       SaveStep[T]
 }
 
 func (p *processChain[T]) AddLink(s string, l LinkFn[T]) error {
@@ -63,6 +67,11 @@ func (p *processChain[T]) Execute(t T) ([]string, error) {
 	var successExecutedLinks []string
 
 	for _, link := range p.linksSeq {
+		if p.ignorableLinks[link] {
+			successExecutedLinks = append(successExecutedLinks, link)
+			continue
+		}
+
 		if err := p.links[link](t); err != nil {
 			return successExecutedLinks, err
 		}
@@ -83,4 +92,11 @@ func (p *processChain[T]) GetChain() []string {
 	var cp = make([]string, len(p.linksSeq))
 	copy(cp, p.linksSeq)
 	return cp
+}
+
+func (p *processChain[T]) SetIgnorableLinks(links []string) {
+	p.ignorableLinks = make(map[string]bool)
+	for _, link := range links {
+		p.ignorableLinks[link] = true
+	}
 }

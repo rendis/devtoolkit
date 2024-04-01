@@ -769,6 +769,7 @@ type ProcessChain[T any] interface {
     SetSaveStep(SaveStep[T])
     Execute(T) ([]string, error)
     GetChain() []string
+	SetIgnorableLinks([]string)
 }
 
 func NewProcessChain[T any]() ProcessChain[T]
