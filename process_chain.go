@@ -7,7 +7,7 @@ import (
 
 type (
 	LinkFn[T any]   func(context.Context, T) error
-	SaveStep[T any] func(context.Context, T) error
+	SaveStep[T any] func(context.Context, T, []string) error
 )
 
 var (
@@ -102,13 +102,13 @@ func (p *processChain[T]) execute(ctx context.Context, t T, ignorableLinks map[s
 			return successExecutedLinks, err
 		}
 
+		successExecutedLinks = append(successExecutedLinks, link)
+
 		if p.saveStep != nil {
-			if err := p.saveStep(ctx, t); err != nil {
-				return successExecutedLinks, err
+			if err := p.saveStep(ctx, t, successExecutedLinks); err != nil {
+				return successExecutedLinks[:len(successExecutedLinks)-1], err
 			}
 		}
-
-		successExecutedLinks = append(successExecutedLinks, link)
 	}
 
 	return successExecutedLinks, nil
