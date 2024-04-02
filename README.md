@@ -29,6 +29,7 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [ZeroValue](#zerovalue)
             - [ToInt](#toint)
             - [ToFloat64](#tofloat64)
+            - [StrToStruct](#strtostruct)
         + [Data structures](#data-structures)
             - [Pair](#pair)
             - [Triple](#triple)
@@ -320,6 +321,13 @@ func ToInt(value any) (int, bool)
 func ToFloat64(value any) (float64, bool)
 ```
 
+
+#### StrToStruct
+`StrToStruct` converts a string to a struct.
+
+```go
+func StrToStruct[T any](s string) (*T, error)
+```
 
 ---
 

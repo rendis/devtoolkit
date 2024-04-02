@@ -167,3 +167,12 @@ func ToFloat64(value any) (float64, bool) {
 		return 0, false
 	}
 }
+
+// StrToStruct converts a string to a struct.
+func StrToStruct[T any](s string) (*T, error) {
+	var t = new(T)
+	if err := json.Unmarshal([]byte(s), &t); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
