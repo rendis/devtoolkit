@@ -1,7 +1,6 @@
 package devtoolkit
 
 import (
-	"log"
 	"sync"
 	"time"
 )
@@ -34,11 +33,11 @@ type ConcurrentManager struct {
 	// Time period after which the number of workers is potentially increased.
 	timeIncreasePeriod time.Duration
 
-	// Ensures some actions are only performed once.
-	once sync.Once
-
 	// A channel used to manage worker allocation.
 	workers chan struct{}
+
+	// Ensures some actions are only performed once.
+	once sync.Once
 
 	// Waits for all workers to finish before shutting down.
 	wg sync.WaitGroup
@@ -97,10 +96,7 @@ func (c *ConcurrentManager) Release() {
 // Wait blocks until all workers have finished their tasks.
 // It ensures that all resources are properly cleaned up before shutting down or reinitializing the manager.
 func (c *ConcurrentManager) Wait() {
-	log.Printf("waiting for workers to finish")
 	c.wg.Wait()
-	log.Printf("all workers finished")
-	c.init()
 }
 
 // init initializes or resets the ConcurrentManager, setting up its internal structures and workers.
@@ -125,17 +121,13 @@ func (c *ConcurrentManager) tickToIncrease() {
 
 	for range ticker.C {
 		if !c.calculateNewMax() {
-			log.Printf("workers already at max: %d", c.max)
 			return
 		}
 
 		var delta = c.currentMax - c.prevMax
-		log.Printf("increasing workers from %d to %d (delta: %d)", c.prevMax, c.currentMax, delta)
-
 		for i := 0; i < delta; i++ {
 			<-c.workers
 		}
-
 	}
 }
 
