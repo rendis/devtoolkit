@@ -13,7 +13,7 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
 - [Devtoolkit](#devtoolkit)
     * [Installation](#installation)
     * [Usage](#usage)
-        + [Execute functions concurrently](#execute-functions-concurrently)
+        + [Concurrent solutions](#concurrent-solutions)
             - [Running concurrent functions](#running-concurrent-functions)
             - [Running concurrent workers](#running-concurrent-workers)
         + [Load properties from a file with environment variable injections and validations](#load-properties-from-a-file-with-environment-variable-injections-and-validations)
@@ -72,14 +72,11 @@ go get github.com/rendis/devtoolkit
 
 ## Usage
 
-### Execute functions concurrently
+### Concurrent solutions
 
-For handling concurrency, devtoolkit provides `ConcurrentExec` and `ConcurrentWorkers` that allows to execute a series of functions concurrently.
-The library offers a convenient way to manage concurrent execution, allowing to cancel execution, retrieve results and errors, and check when execution is done.
+#### ConcurrentExec
 
-#### Running concurrent functions
-
-Here's an example of how to create and run concurrent functions with `ConcurrentExec`.
+`ConcurrentExec` is a utility for executing a series of functions concurrently.
 
 ```go
 var fns []devtoolkit.ConcurrentFn
@@ -119,9 +116,9 @@ for _, res := range results {
 
 Note: This example does not include error handling, be sure to do so in your implementations.
 
-#### Running concurrent workers
+#### ConcurrentWorkers
 
-Here's an example of how to create and run concurrent workers with `ConcurrentWorkers`.
+`ConcurrentWorkers` is a utility for executing a series of functions concurrently using a pool of workers.
 
 ```go
 var maxWorkers = 5
@@ -142,6 +139,55 @@ cw.Stop(nil)
 // Wait for all workers to finish
 cw.Wait()
 ```
+
+#### ConcurrentManager
+
+`ConcurrentManager` is a struct that dynamically manages a pool of workers within set limits. 
+It adjusts worker count based on load, offering functions to allocate, release, and wait for workers, 
+optimizing concurrent task handling.
+
+```go
+// NewConcurrentManager creates a new instance of ConcurrentManager with specified parameters.
+// It ensures that the provided parameters are within acceptable ranges and initializes the manager.
+func NewConcurrentManager(minWorkers, maxWorkers int, workerIncreaseRate float64, timeIncreasePeriod time.Duration) *ConcurrentManager
+
+// Allocate requests a new worker to be allocated.
+// It blocks if the maximum number of workers has been reached, until a worker is released.
+func (c *ConcurrentManager) Allocate()
+
+// Release frees up a worker, making it available for future tasks.
+// It only releases a worker if the release condition is met, ensuring resources are managed efficiently.
+func (c *ConcurrentManager) Release()
+
+// Wait blocks until all workers have finished their tasks.
+// It ensures that all resources are properly cleaned up before shutting down or reinitializing the manager.
+func (c *ConcurrentManager) Wait()
+```
+
+
+#### AtomicNumber
+
+`AtomicNumber` is a utility for managing an number atomically.
+
+```go
+// initialize an atomic number with default value 0
+var atomic AtomicNumber[int]
+
+atomic.Get() // get the current value
+atomic.Set(5) // set the value to 5
+atomic.Increment() // increment the value by 1
+atomic.IncrementBy(10) // add 10 to the value
+atomic.IncrementAndGet() // increment the value by 1 and return the new value
+atomic.IncrementByAndGet(10) // add 10 to the value and return the new value
+var incremented = atomic.IncrementIf(func(v int) {return v > 0}) // increment the value by 1 if the condition is met
+var incrementedBy = atomic.IncrementByIf(10, func(v int) {return v > 0}) // add 10 to the value if the condition is met
+
+// same functions are available for decrementing the value
+atomic.Decrement() // decrement the value by 1
+...
+```
+
+
 
 ---
 
