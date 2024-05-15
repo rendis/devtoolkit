@@ -42,17 +42,34 @@ type ProcessChain[T any] interface {
 	ExecuteWithIgnorableLinks(context.Context, T, []string) ([]string, error)
 }
 
+type ProcessChainOptions struct {
+	AddLinkNameToError bool // default: false
+}
+
+func setProcessChainOptionsDefaults(opts *ProcessChainOptions) *ProcessChainOptions {
+	if opts == nil {
+		opts = &ProcessChainOptions{
+			AddLinkNameToError: false,
+		}
+	}
+
+	return opts
+}
+
 // NewProcessChain creates and returns a new instance of a process chain for data of type T.
-func NewProcessChain[T any]() ProcessChain[T] {
+func NewProcessChain[T any](opts *ProcessChainOptions) ProcessChain[T] {
+	opts = setProcessChainOptionsDefaults(opts)
 	return &processChain[T]{
-		links: make(map[string]LinkFn[T]),
+		links:              make(map[string]LinkFn[T]),
+		addLinkNameToError: opts.AddLinkNameToError,
 	}
 }
 
 type processChain[T any] struct {
-	links    map[string]LinkFn[T]
-	linksSeq []string
-	saveStep SaveStep[T]
+	links              map[string]LinkFn[T]
+	linksSeq           []string
+	saveStep           SaveStep[T]
+	addLinkNameToError bool
 }
 
 func (p *processChain[T]) AddLink(s string, l LinkFn[T]) error {
@@ -99,6 +116,9 @@ func (p *processChain[T]) execute(ctx context.Context, t T, ignorableLinks map[s
 		}
 
 		if err := p.links[link](ctx, t); err != nil {
+			if p.addLinkNameToError {
+				err = errors.New(link + ": " + err.Error())
+			}
 			return successExecutedLinks, err
 		}
 
@@ -106,6 +126,9 @@ func (p *processChain[T]) execute(ctx context.Context, t T, ignorableLinks map[s
 
 		if p.saveStep != nil {
 			if err := p.saveStep(ctx, t, successExecutedLinks); err != nil {
+				if p.addLinkNameToError {
+					err = errors.New("saveStep: " + err.Error())
+				}
 				return successExecutedLinks[:len(successExecutedLinks)-1], err
 			}
 		}

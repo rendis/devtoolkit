@@ -826,7 +826,7 @@ type ProcessChain[T any] interface {
     ExecuteWithIgnorableLinks(context.Context, T, []string) ([]string, error)
 }
 
-func NewProcessChain[T any]() ProcessChain[T]
+func NewProcessChain[T any](opts *ProcessChainOptions) ProcessChain[T]
 ```
 
 Example:
