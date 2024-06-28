@@ -18,10 +18,12 @@ type Resilience interface {
 
 // ResilienceOptions contains configuration parameters for retry operations.
 type ResilienceOptions struct {
-	MaxRetries int           // indicates the maximum number of retries. Default is 3.
-	WaitTime   time.Duration // indicates the wait time between retries. Default is 100ms.
-	Backoff    bool          // indicates whether to use exponential backoff. Default is false.
-	RawError   bool          // indicates whether to return the raw error or wrap it in a new error. Default is false.
+	MaxRetries       int              // indicates the maximum number of retries. Default is 3.
+	WaitTime         time.Duration    // indicates the wait time between retries. Default is 100ms.
+	Backoff          bool             // indicates whether to use exponential backoff. Default is false.
+	RawError         bool             // indicates whether to return the raw error or wrap it in a new error. Default is false.
+	IsIgnorableError func(error) bool // indicates whether to ignore the error or not. Default is nil.
+	ReturnIgnorable  bool             // indicates whether to return the ignorable error or not. Default is false.
 }
 
 // NewResilience returns a new Resilience instance with the provided options or defaults.
@@ -46,40 +48,39 @@ func NewResilience(options *ResilienceOptions) (Resilience, error) {
 		options.WaitTime = defaultWaitTime
 	}
 
-	return &resilience{
-		maxRetries: options.MaxRetries,
-		waitTime:   options.WaitTime,
-		backoff:    options.Backoff,
-		rawError:   options.RawError,
-	}, nil
+	return &resilience{*options}, nil
 }
 
 type resilience struct {
-	maxRetries int
-	waitTime   time.Duration
-	backoff    bool
-	rawError   bool
+	ResilienceOptions
 }
 
 func (r *resilience) RetryOperation(operation func() error) error {
 	var lastErr error
-	waitTime := r.waitTime
-	for i := 0; i < r.maxRetries; i++ {
+	waitTime := r.WaitTime
+	for i := 0; i < r.MaxRetries; i++ {
 		lastErr = operation()
 		if lastErr == nil {
 			return nil
 		}
 
-		if r.backoff {
+		if r.IsIgnorableError != nil && r.IsIgnorableError(lastErr) {
+			if r.ReturnIgnorable {
+				return lastErr
+			}
+			return nil
+		}
+
+		if r.Backoff {
 			time.Sleep(waitTime)
 			waitTime *= 2 // exponential backoff.
 		} else {
-			time.Sleep(r.waitTime)
+			time.Sleep(r.WaitTime)
 		}
 	}
 
-	if r.rawError {
+	if r.RawError {
 		return lastErr
 	}
-	return errors.Join(lastErr, errors.New(fmt.Sprintf("max retries exceeded (%d)", r.maxRetries)))
+	return errors.Join(lastErr, errors.New(fmt.Sprintf("max retries exceeded (%d)", r.MaxRetries)))
 }
