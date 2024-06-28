@@ -18,12 +18,12 @@ type Resilience interface {
 
 // ResilienceOptions contains configuration parameters for retry operations.
 type ResilienceOptions struct {
-	MaxRetries       int              // indicates the maximum number of retries. Default is 3.
-	WaitTime         time.Duration    // indicates the wait time between retries. Default is 100ms.
-	Backoff          bool             // indicates whether to use exponential backoff. Default is false.
-	RawError         bool             // indicates whether to return the raw error or wrap it in a new error. Default is false.
-	IsIgnorableError func(error) bool // indicates whether to ignore the error or not. Default is nil.
-	ReturnIgnorable  bool             // indicates whether to return the ignorable error or not. Default is false.
+	MaxRetries              int              // indicates the maximum number of retries. Default is 3.
+	WaitTime                time.Duration    // indicates the wait time between retries. Default is 100ms.
+	Backoff                 bool             // indicates whether to use exponential backoff. Default is false.
+	RawError                bool             // indicates whether to return the raw error or wrap it in a new error. Default is false.
+	IsIgnorableErrorHandler func(error) bool // indicates whether to ignore the error or not. Default is nil.
+	ReturnIgnorable         bool             // indicates whether to return the ignorable error or not. Default is false.
 }
 
 // NewResilience returns a new Resilience instance with the provided options or defaults.
@@ -64,7 +64,7 @@ func (r *resilience) RetryOperation(operation func() error) error {
 			return nil
 		}
 
-		if r.IsIgnorableError != nil && r.IsIgnorableError(lastErr) {
+		if r.IsIgnorableErrorHandler != nil && r.IsIgnorableErrorHandler(lastErr) {
 			if r.ReturnIgnorable {
 				return lastErr
 			}
