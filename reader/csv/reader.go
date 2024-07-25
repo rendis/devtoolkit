@@ -27,7 +27,7 @@ type Reader interface {
 	GroupByColumnIndex(columnIndex int) map[string][]Row
 	GroupByColumnName(columnName string) map[string][]Row
 	GetRow(index int) (Row, bool)
-	RowToObjet(index int, obj any) error
+	RowToObjet(index int, obj any) (bool, error)
 	ToObjects(objs []any) error
 }
 
@@ -161,12 +161,12 @@ func (c *csvReader) GetRow(index int) (Row, bool) {
 	}, true
 }
 
-func (c *csvReader) RowToObjet(index int, obj any) error {
+func (c *csvReader) RowToObjet(index int, obj any) (bool, error) {
 	r, ok := c.GetRow(index)
 	if !ok {
-		return nil
+		return false, nil
 	}
-	return r.ToObject(obj)
+	return true, r.ToObject(obj)
 }
 
 func (c *csvReader) ToObjects(objs []any) error {
