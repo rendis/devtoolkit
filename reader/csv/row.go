@@ -35,8 +35,8 @@ func (r *row) Fields() []*RowField {
 
 }
 
-func (r *row) Value(field string) (string, bool) {
-	if i, ok := r.headerPosition[field]; ok {
+func (r *row) Value(columnName string) (string, bool) {
+	if i, ok := r.headerPosition[columnName]; ok {
 		return r.row[i], true
 	}
 	return "", false
