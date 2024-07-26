@@ -3,7 +3,7 @@ package csv
 import "strings"
 
 type Row interface {
-	Value(fieldName string) (string, bool)
+	Value(columnName string) (string, bool)
 	Fields() []*RowField
 	Values() []string
 	AsMap() map[string]string
