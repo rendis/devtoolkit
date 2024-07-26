@@ -23,8 +23,8 @@ type Reader interface {
 }
 
 type ReaderOptions struct {
-	HasNoHeader bool
-	Separator   ReaderSeparator
+	NoHeader  bool
+	Separator ReaderSeparator
 }
 
 type csvReader struct {
@@ -201,7 +201,7 @@ func (c *csvReader) loadRows(reader *csv.Reader, opts *ReaderOptions) error {
 		return nil
 	}
 
-	if !opts.HasNoHeader {
+	if !opts.NoHeader {
 		c.SetHeader(records[0])
 		records = records[1:]
 	}

@@ -29,8 +29,8 @@ func NewCSVReaderFromPath(path string, optFns ...func(*ReaderOptions)) (Reader, 
 
 func NewCSVReader(r io.Reader, optFns ...func(*ReaderOptions)) (Reader, error) {
 	opt := &ReaderOptions{
-		HasNoHeader: false,
-		Separator:   CommaSeparator,
+		NoHeader:  false,
+		Separator: CommaSeparator,
 	}
 
 	for _, o := range optFns {
