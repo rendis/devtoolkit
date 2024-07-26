@@ -25,7 +25,9 @@ type Reader interface {
 	GetHeaders() []string
 	TotalRows() int
 	GroupByColumnIndex(columnIndex int) map[string][]Row
+	GroupByColumnIndexes(columnIndexes ...int) map[string][]Row
 	GroupByColumnName(columnName string) map[string][]Row
+	GroupByColumnNames(columnNames ...string) map[string][]Row
 	GetRow(index int) (Row, bool)
 	RowToObjet(index int, obj any) (bool, error)
 	GetNextIndex(currentIndex int, cycle bool) int
@@ -126,18 +128,61 @@ func (c *csvReader) TotalRows() int {
 }
 
 func (c *csvReader) GroupByColumnIndex(columnIndex int) map[string][]Row {
+	if len(c.records) == 0 || columnIndex < 0 || columnIndex >= len(c.records[0]) {
+		return nil
+	}
+
 	grouped := make(map[string][]Row)
 	for i, record := range c.records {
-		key := record[columnIndex]
-		if _, ok := grouped[key]; !ok {
-			grouped[key] = make([]Row, 0)
+		value := record[columnIndex]
+		if _, ok := grouped[value]; !ok {
+			grouped[value] = make([]Row, 0)
 		}
-		grouped[key] = append(grouped[key], &row{
+		r := &row{
 			row:            record,
 			headers:        c.headers,
 			headerPosition: c.headerPosition,
 			lineNumber:     i + 1,
-		})
+		}
+		grouped[value] = append(grouped[value], r)
+	}
+	return grouped
+}
+
+func (c *csvReader) GroupByColumnIndexes(columnIndexes ...int) map[string][]Row {
+	if len(columnIndexes) == 0 || len(c.records) == 0 {
+		return nil
+	}
+
+	grouped := make(map[string][]Row)
+	var recordLength = len(c.records[0])
+
+	var groupKeyBuilder = func(record []string, columnIndexes []int) string {
+		var groupValues []string
+		for _, columnIndex := range columnIndexes {
+			if recordLength > columnIndex {
+				value := record[columnIndex]
+				groupValues = append(groupValues, value)
+			}
+		}
+		return strings.Join(groupValues, ":")
+	}
+
+	for i, record := range c.records {
+		// build group key
+		groupKey := groupKeyBuilder(record, columnIndexes)
+
+		// add to group
+		if _, ok := grouped[groupKey]; !ok {
+			grouped[groupKey] = make([]Row, 0)
+		}
+		r := &row{
+			row:            record,
+			headers:        c.headers,
+			headerPosition: c.headerPosition,
+			lineNumber:     i + 1,
+		}
+		grouped[groupKey] = append(grouped[groupKey], r)
 	}
 	return grouped
 }
@@ -147,6 +192,16 @@ func (c *csvReader) GroupByColumnName(columnName string) map[string][]Row {
 		return c.GroupByColumnIndex(i)
 	}
 	return nil
+}
+
+func (c *csvReader) GroupByColumnNames(columnNames ...string) map[string][]Row {
+	var columnIndexes []int
+	for _, columnName := range columnNames {
+		if i, ok := c.headerPosition[columnName]; ok {
+			columnIndexes = append(columnIndexes, i)
+		}
+	}
+	return c.GroupByColumnIndexes(columnIndexes...)
 }
 
 func (c *csvReader) GetRow(index int) (Row, bool) {
