@@ -22,7 +22,7 @@ go get github.com/rendis/devtoolkit
 To run the `struct-guard` code generator, use the following command:
 
 ```sh
-go run github.com/rendis/devtoolkit/generators/struct-guard
+go run github.com/rendis/devtoolkit/generator/struct-guard
 ```
 
 ## Configuration

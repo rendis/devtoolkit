@@ -522,7 +522,7 @@ More details can be found in the [CSV Reader documentation](reader/csv/README.md
 
 The struct-guard tool generates wrapper structs in Go for tracking changes to the fields of the original struct.
 
-More details can be found in the [struct-generator documentation](generators/struct-guard/README.md).
+More details can be found in the [struct-generator documentation](generator/struct-guard/README.md).
 
 ---
 
