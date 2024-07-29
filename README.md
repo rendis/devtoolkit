@@ -26,6 +26,8 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [Triple](#triple)
         + [Readers](#readers)
             - [CSV Reader](#csv-reader)
+        + [Generators](#generators)
+            - [struct-guard](#struct-guard)
         + [Working with Generic Objects](#working-with-generic-objects)
             - [ToPtr](#toptr)
             - [IsZero](#iszero)
@@ -511,6 +513,16 @@ type Triple[F any, S any, T any] struct {
 The CSV reader provides a simple and efficient way to read CSV files in Go.
 
 More details can be found in the [CSV Reader documentation](reader/csv/README.md).
+
+---
+
+### Generators
+
+#### struct-guard
+
+The struct-guard tool generates wrapper structs in Go for tracking changes to the fields of the original struct.
+
+More details can be found in the [struct-generator documentation](generators/struct-guard/README.md).
 
 ---
 

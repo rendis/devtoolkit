@@ -22,12 +22,23 @@ type GeneratorsProp struct {
 }
 
 type StructGuardProp struct {
-	GeneratedFileName      *string  `yaml:"generated-file-name"`
-	GeneratedStructPrefix  *string  `yaml:"generated-struct-prefix"`
-	GeneratedStructPostfix *string  `yaml:"generated-struct-postfix"`
-	ToScan                 []string `yaml:"to-scan"`
-	ExcludeFilesToScan     []string `yaml:"exclude-files-to-scan"`
-	ForceExport            bool     `yaml:"force-export"`
+	// GeneratedFileName is the name of the generated file, defaults to 'codegen.go'
+	GeneratedFileName *string `yaml:"generated-file-name"`
+
+	// GeneratedStructPrefix is the prefix to be added to the generated struct name, defaults to ''
+	GeneratedStructPrefix *string `yaml:"generated-struct-prefix"`
+
+	// GeneratedStructPostfix is the postfix to be added to the generated struct name, defaults to 'Wrapper'
+	GeneratedStructPostfix *string `yaml:"generated-struct-postfix"`
+
+	// ToScan is the list of directories or files to scan for structs
+	ToScan []string `yaml:"to-scan"`
+
+	// ExcludeFilesToScan is the list of files to exclude from scanning
+	ExcludeFilesToScan []string `yaml:"exclude-files-to-scan"`
+
+	// ForceExport is a flag to force export of the generated struct, defaults to false (private)
+	ForceExport bool `yaml:"force-export"`
 }
 
 func (p *GeneratorsConfProp) SetDefaults() {
