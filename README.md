@@ -16,7 +16,14 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
         + [Concurrent solutions](#concurrent-solutions)
             - [Running concurrent functions](#running-concurrent-functions)
             - [Running concurrent workers](#running-concurrent-workers)
-        + [Load properties from a file with environment variable injections and validations](#load-properties-from-a-file-with-environment-variable-injections-and-validations)
+        + [Load properties from a file (JSON/YAML) with environment variable injections and validations](#load-properties-from-a-file-with-environment-variable-injections-and-validations)
+        + [Resilience](#resilience)
+            - [RetryOperation](#retryoperation)
+        + [Design Patterns](#design-patterns)
+            - [Process Chain](#process-chain)
+        + [Data structures](#data-structures)
+            - [Pair](#pair)
+            - [Triple](#triple)
         + [Working with Generic Objects](#working-with-generic-objects)
             - [ToPtr](#toptr)
             - [IsZero](#iszero)
@@ -30,9 +37,6 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [ToInt](#toint)
             - [ToFloat64](#tofloat64)
             - [StrToStruct](#strtostruct)
-        + [Data structures](#data-structures)
-            - [Pair](#pair)
-            - [Triple](#triple)
         + [Working with Slices](#working-with-slices)
             - [Contains](#contains)
             - [ContainsWithPredicate](#containswithpredicate)
@@ -57,10 +61,6 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
             - [Union](#union)
             - [GetMapKeys](#getmapkeys)
             - [GetMapValues](#getmapvalues)
-        + [Resilience](#resilience)
-            - [RetryOperation](#retryoperation)
-        + [Design Patterns](#design-patterns)
-            - [Process Chain](#process-chain)
     * [Contributions](#contributions)
     * [License](#license)
 
@@ -255,6 +255,104 @@ err := devtoolkit.LoadPropFile("config.json", props)
 
 ```
 
+---
+
+### Resilience
+
+Utility functions and patterns to ensure resilient operation execution.
+
+#### RetryOperation
+
+The `RetryOperation` function retries an operation for a specified number of times with optional exponential backoff. It's useful when operations have a tendency to fail temporarily and may succeed on a subsequent attempt.
+
+```go
+type ResilienceOptions struct {
+    MaxRetries       int                     // indicates the maximum number of retries. Default is 3.
+    WaitTime         time.Duration           // indicates the wait time between retries. Default is 100ms.
+    Backoff          bool                    // indicates whether to use exponential backoff. Default is false.
+    RawError         bool                    // indicates whether to return the raw error or wrap it in a new error. Default is false.
+    IsIgnorableErrorHandler func(error) bool // indicates whether to ignore the error or not. Default is nil.
+    ReturnIgnorable  bool                    // indicates whether to return the ignorable error or not. Default is false.
+}
+
+
+func NewResilience(options *ResilienceOptions) (Resilience, error)
+```
+
+Example:
+```go
+operation := func() error {
+	return networkCall() // Some hypothetical network operation
+}
+options := &devtoolkit.ResilienceOptions{
+	MaxRetries: 3, 
+	WaitTime:   2 * time.Second,
+	Backoff:    true,
+}
+
+resilienceHandler, err := devtoolkit.NewResilience(options)
+
+if err != nil {
+	panic(err)
+}
+
+err = resilienceHandler.RetryOperation(operation) // wrapped error returned
+
+if err != nil {
+	fmt.Println("Operation failed.", err)
+} else {
+	fmt.Println("Operation succeeded!")
+}
+```
+
+With the `RetryOperation` function, users can easily add resiliency to their operations and ensure that temporary failures don't lead to complete system failures.
+
+---
+
+### Design Patterns
+
+#### Process Chain
+`ProcessChain` is an implementation that enables the orderly execution of operations on data within a Go application.
+Leveraging the "Chain of Responsibility" and "Command" design patterns, it allows for the addition of operations (links)
+and an optional save step to ensure data integrity after each operation. Ideal for scenarios requiring a series of
+actions on data with the flexibility to add, remove, or modify steps as needed.
+
+```go
+type ProcessChain[T any] interface {
+    AddLink(string, LinkFn[T]) error
+    SetSaveStep(SaveStep[T])
+    GetChain() []string
+    Execute(context.Context, T) ([]string, error)
+    ExecuteWithIgnorableLinks(context.Context, T, []string) ([]string, error)
+}
+
+func NewProcessChain[T any](opts *ProcessChainOptions) ProcessChain[T]
+```
+
+Example:
+```go
+type Data struct {
+    // Your data fields here
+}
+
+func step1(d Data) error {
+    // Define a process operation
+}
+
+func step2(d Data) error {
+    // Define a process operation
+}
+
+func saveData(d Data) error {
+    // Define a save operation
+}
+
+chain := NewProcessChain[Data]()
+chain.AddLink("step1", step1)
+chain.AddLink("step2", step2)
+chain.SetSaveStep(saveData)
+err := chain.Execute(Data{})
+```
 ---
 
 ### Working with Generic Objects
@@ -756,105 +854,6 @@ fmt.Println(values) // Output: [1 2 1]
 
 values = GetMapValues(map[string]int{"a": 1, "b": 2, "c": 1}, true)
 fmt.Println(values) // Output: [1 2]
-```
-
----
-
-### Resilience
-
-Utility functions and patterns to ensure resilient operation execution.
-
-#### RetryOperation
-
-The `RetryOperation` function retries an operation for a specified number of times with optional exponential backoff. It's useful when operations have a tendency to fail temporarily and may succeed on a subsequent attempt.
-
-```go
-type ResilienceOptions struct {
-    MaxRetries       int                     // indicates the maximum number of retries. Default is 3.
-    WaitTime         time.Duration           // indicates the wait time between retries. Default is 100ms.
-    Backoff          bool                    // indicates whether to use exponential backoff. Default is false.
-    RawError         bool                    // indicates whether to return the raw error or wrap it in a new error. Default is false.
-    IsIgnorableErrorHandler func(error) bool // indicates whether to ignore the error or not. Default is nil.
-    ReturnIgnorable  bool                    // indicates whether to return the ignorable error or not. Default is false.
-}
-
-
-func NewResilience(options *ResilienceOptions) (Resilience, error)
-```
-
-Example:
-```go
-operation := func() error {
-	return networkCall() // Some hypothetical network operation
-}
-options := &devtoolkit.ResilienceOptions{
-	MaxRetries: 3, 
-	WaitTime:   2 * time.Second,
-	Backoff:    true,
-}
-
-resilienceHandler, err := devtoolkit.NewResilience(options)
-
-if err != nil {
-	panic(err)
-}
-
-err = resilienceHandler.RetryOperation(operation) // wrapped error returned
-
-if err != nil {
-	fmt.Println("Operation failed.", err)
-} else {
-	fmt.Println("Operation succeeded!")
-}
-```
-
-With the `RetryOperation` function, users can easily add resiliency to their operations and ensure that temporary failures don't lead to complete system failures.
-
----
-
-### Design Patterns
-
-#### Process Chain
-`ProcessChain` is an implementation that enables the orderly execution of operations on data within a Go application. 
-Leveraging the "Chain of Responsibility" and "Command" design patterns, it allows for the addition of operations (links) 
-and an optional save step to ensure data integrity after each operation. Ideal for scenarios requiring a series of 
-actions on data with the flexibility to add, remove, or modify steps as needed.
-
-```go
-type ProcessChain[T any] interface {
-    AddLink(string, LinkFn[T]) error
-    SetSaveStep(SaveStep[T])
-    GetChain() []string
-    Execute(context.Context, T) ([]string, error)
-    ExecuteWithIgnorableLinks(context.Context, T, []string) ([]string, error)
-}
-
-func NewProcessChain[T any](opts *ProcessChainOptions) ProcessChain[T]
-```
-
-Example:
-```go
-type Data struct {
-    // Your data fields here
-}
-
-func step1(d Data) error {
-    // Define a process operation
-}
-
-func step2(d Data) error {
-    // Define a process operation
-}
-
-func saveData(d Data) error {
-    // Define a save operation
-}
-
-chain := NewProcessChain[Data]()
-chain.AddLink("step1", step1)
-chain.AddLink("step2", step2)
-chain.SetSaveStep(saveData)
-err := chain.Execute(Data{})
 ```
 
 ## Contributions
