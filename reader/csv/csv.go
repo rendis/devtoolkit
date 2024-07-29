@@ -8,15 +8,24 @@ import (
 	"strings"
 )
 
+// ReaderSeparator defines the type for the separator used in the CSV file.
 type ReaderSeparator rune
 
 const (
-	CommaSeparator     ReaderSeparator = ','
+	// CommaSeparator is used to separate fields with a comma.
+	CommaSeparator ReaderSeparator = ','
+
+	// SemicolonSeparator is used to separate fields with a semicolon.
 	SemicolonSeparator ReaderSeparator = ';'
-	TabSeparator       ReaderSeparator = '\t'
-	PipeSeparator      ReaderSeparator = '|'
+
+	// TabSeparator is used to separate fields with a tab.
+	TabSeparator ReaderSeparator = '\t'
+
+	// PipeSeparator is used to separate fields with a pipe.
+	PipeSeparator ReaderSeparator = '|'
 )
 
+// NewCSVReaderFromPath creates a new CSV Reader from a file path with optional ReaderOptions.
 func NewCSVReaderFromPath(path string, optFns ...func(*ReaderOptions)) (Reader, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -27,6 +36,7 @@ func NewCSVReaderFromPath(path string, optFns ...func(*ReaderOptions)) (Reader, 
 	return NewCSVReader(file, optFns...)
 }
 
+// NewCSVReader creates a new CSV Reader from an io.Reader with optional ReaderOptions.
 func NewCSVReader(r io.Reader, optFns ...func(*ReaderOptions)) (Reader, error) {
 	opt := &ReaderOptions{
 		NoHeader:  false,
@@ -48,6 +58,7 @@ func NewCSVReader(r io.Reader, optFns ...func(*ReaderOptions)) (Reader, error) {
 	return localReader, nil
 }
 
+// ToReaderSeparator converts a string to a ReaderSeparator.
 func ToReaderSeparator(separator string) (ReaderSeparator, bool) {
 	separator = strings.TrimSpace(separator)
 	switch separator {

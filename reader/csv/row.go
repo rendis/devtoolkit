@@ -2,15 +2,28 @@ package csv
 
 import "strings"
 
+// Row defines the interface for a row in the CSV file.
 type Row interface {
+	// Value returns the value of the specified column name.
 	Value(columnName string) (string, bool)
+
+	// Fields returns the fields of the row.
 	Fields() []*RowField
+
+	// Values returns the values of the row.
 	Values() []string
+
+	// AsMap returns the row as a map with column names as keys.
 	AsMap() map[string]string
+
+	// LineNumber returns the line number of the row in the CSV file.
 	LineNumber() int
+
+	// ToObject converts the row to the specified object.
 	ToObject(obj any) error
 }
 
+// RowField represents a field in a row with a name and value.
 type RowField struct {
 	Name  string `json:"name" bson:"name"`
 	Value string `json:"value" bson:"value"`

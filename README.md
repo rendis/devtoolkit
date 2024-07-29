@@ -24,6 +24,8 @@ As Devtoolkit continues to evolve, it will encompass even more functionalities t
         + [Data structures](#data-structures)
             - [Pair](#pair)
             - [Triple](#triple)
+        + [Readers](#readers)
+            - [CSV Reader](#csv-reader)
         + [Working with Generic Objects](#working-with-generic-objects)
             - [ToPtr](#toptr)
             - [IsZero](#iszero)
@@ -499,6 +501,16 @@ type Triple[F any, S any, T any] struct {
     Third  T
 }
 ```
+
+---
+
+### Readers
+
+#### CSV Reader
+
+The CSV reader provides a simple and efficient way to read CSV files in Go.
+
+More details can be found in the [CSV Reader documentation](reader/csv/README.md).
 
 ---
 

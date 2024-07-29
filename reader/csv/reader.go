@@ -5,23 +5,49 @@ import (
 	"strings"
 )
 
+// RowIterator defines a function type for iterating over rows.
 type RowIterator func(yield func(Row) bool)
 
+// Reader defines the interface for reading CSV files and provides various methods to work with the data.
 type Reader interface {
+	// SetHeader sets the header of the CSV file.
 	SetHeader(header []string)
+
+	// Iterator returns a RowIterator for iterating over rows.
 	Iterator() RowIterator
+
+	// GetHeaders returns the headers of the CSV file.
 	GetHeaders() []string
+
+	// TotalRows returns the total number of rows in the CSV file.
 	TotalRows() int
+
+	// GroupByColumnIndex groups rows by the value at the specified column index.
 	GroupByColumnIndex(columnIndex int) map[string][]Row
+
+	// GroupByColumnIndexes groups rows by the values at the specified column indexes.
 	GroupByColumnIndexes(columnIndexes ...int) map[string][]Row
+
+	// GroupByColumnName groups rows by the value of the specified column name.
 	GroupByColumnName(columnName string) map[string][]Row
+
+	// GroupByColumnNames groups rows by the values of the specified column names.
 	GroupByColumnNames(columnNames ...string) map[string][]Row
+
+	// GetRow returns the row at the specified index.
 	GetRow(index int) (Row, bool)
+
+	// RowToObjet converts the row at the specified index to the specified object.
 	RowToObjet(index int, obj any) (bool, error)
+
+	// GetNextIndex returns the next index based on the current index and cycle option.
 	GetNextIndex(currentIndex int, cycle bool) int
+
+	// ToObjects converts all rows to the specified slice of objects.
 	ToObjects(objs []any) error
 }
 
+// ReaderOptions holds options for configuring the CSV Reader.
 type ReaderOptions struct {
 	NoHeader  bool
 	Separator ReaderSeparator
