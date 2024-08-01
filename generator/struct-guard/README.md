@@ -54,6 +54,7 @@ The `struct-guard` tool generates a Go file based on the provided configuration.
     - `Get<FieldName>WithChange()`: Returns the value of the field and a boolean indicating if the value has changed.
 - **Setter Methods**: Methods to set the value of each field and mark it as changed.
     - `Set<FieldName>(value)`: Sets the value of the field and marks it as changed.
+    - `Set<FieldName>IfDifferent(value)`: Sets the value of the field if it is different from the current value.
 - **Slice Methods**: Methods to append to a slice, get the last element, and check if it has changed.
     - `GetLast<FieldName>()`: Returns the last element of the slice.
     - `GetLast<FieldName>WithChange()`: Returns the last element of the slice and a boolean indicating if it has changed.
