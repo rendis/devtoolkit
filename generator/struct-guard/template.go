@@ -50,6 +50,7 @@ func (w *{{$wrapperName}}) Set{{.FieldNameUpperCamel}}(value {{.FieldType}}) {
     w.changes.{{.FieldNameLowerCamel}}Changed = true
 }
 
+{{- if and (eq .IsArray "false") (eq .IsMap "false") }}
 // Set{{.FieldNameUpperCamel}}IfDifferent sets the value of {{$typeName}}.{{.OriginalName}} if it is different from the current value and returns a boolean indicating if the value has changed
 func (w *{{$wrapperName}}) Set{{.FieldNameUpperCamel}}IfDifferent(value {{.FieldType}}) bool {
 	{{- if eq .IsPtr "true" }}
@@ -70,6 +71,7 @@ func (w *{{$wrapperName}}) Set{{.FieldNameUpperCamel}}IfDifferent(value {{.Field
 	w.changes.{{.FieldNameLowerCamel}}Changed = true
 	return true
 }
+{{- end }}
 
 {{- if eq .IsArray "true" }}
 // GetLast{{.FieldNameUpperCamel}} returns the last value of {{$typeName}}.{{.OriginalName}}
