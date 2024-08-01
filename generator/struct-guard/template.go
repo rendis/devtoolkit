@@ -68,6 +68,7 @@ func (w *{{$wrapperName}}) Set{{.FieldNameUpperCamel}}IfDifferent(value {{.Field
 
 	w.{{$typeName}}.{{.OriginalName}} = value
 	w.changes.{{.FieldNameLowerCamel}}Changed = true
+	return true
 }
 
 {{- if eq .IsArray "true" }}
