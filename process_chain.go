@@ -19,13 +19,9 @@ var (
 // on data of type T. It allows adding links, setting a save Step, executing the chain,
 // and retrieving the sequence of added links.
 type ProcessChain[T any] interface {
-	// AddLink adds a new link, identified by a string key, to the chain of operations.
+	// AddLink adds a new link to the chain of operations.
 	// It returns an error if the provided link function is nil.
-	AddLink(string, LinkFn[T]) error
-
-	// AddLinkWithWait adds a new link, identified by a string key, to the chain of operations.
-	// It returns an error if the provided link function is nil.
-	AddLinkWithWait(s string, l LinkFn[T], wait time.Duration) error
+	AddLink(link LinkInfo[T]) error
 
 	// AddLinks adds multiple links to the chain of operations.
 	// It returns an error if any of the provided link functions is nil.
@@ -73,9 +69,10 @@ func NewProcessChain[T any](opts *ProcessChainOptions) ProcessChain[T] {
 }
 
 type LinkInfo[T any] struct {
-	Name string
-	Step LinkFn[T]
-	Wait time.Duration
+	Name       string
+	Step       LinkFn[T]
+	WaitBefore time.Duration
+	WaitAfter  time.Duration
 }
 
 type processChain[T any] struct {
@@ -84,22 +81,17 @@ type processChain[T any] struct {
 	addLinkNameToError bool
 }
 
-func (p *processChain[T]) AddLink(s string, l LinkFn[T]) error {
-	return p.AddLinkWithWait(s, l, 0)
-}
-
-func (p *processChain[T]) AddLinkWithWait(s string, l LinkFn[T], wait time.Duration) error {
-	if l == nil {
+func (p *processChain[T]) AddLink(link LinkInfo[T]) error {
+	if link.Step == nil {
 		return ErrNilLinkFn
 	}
-	li := &LinkInfo[T]{Name: s, Step: l, Wait: wait}
-	p.links = append(p.links, li)
+	p.links = append(p.links, &link)
 	return nil
 }
 
 func (p *processChain[T]) AddLinks(links []LinkInfo[T]) error {
 	for _, link := range links {
-		if err := p.AddLinkWithWait(link.Name, link.Step, link.Wait); err != nil {
+		if err := p.AddLink(link); err != nil {
 			return err
 		}
 	}
@@ -143,6 +135,10 @@ func (p *processChain[T]) execute(ctx context.Context, t T, ignorableLinks map[s
 			continue
 		}
 
+		if link.WaitBefore > 0 {
+			time.Sleep(link.WaitBefore)
+		}
+
 		if err := link.Step(ctx, t); err != nil {
 			if p.addLinkNameToError {
 				err = errors.New(linkName + ": " + err.Error())
@@ -152,8 +148,8 @@ func (p *processChain[T]) execute(ctx context.Context, t T, ignorableLinks map[s
 
 		successExecutedLinks = append(successExecutedLinks, linkName)
 
-		if link.Wait > 0 {
-			time.Sleep(link.Wait)
+		if link.WaitAfter > 0 {
+			time.Sleep(link.WaitAfter)
 		}
 
 		if p.saveStep != nil {
