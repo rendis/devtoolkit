@@ -19,7 +19,7 @@ type Resilience interface {
 // ResilienceOptions contains configuration parameters for retry operations.
 type ResilienceOptions struct {
 	MaxRetries              int              // indicates the maximum number of retries. Default is 3.
-	WaitTime                time.Duration    // indicates the wait time between retries. Default is 100ms.
+	WaitTime                time.Duration    // indicates the Wait time between retries. Default is 100ms.
 	Backoff                 bool             // indicates whether to use exponential backoff. Default is false.
 	RawError                bool             // indicates whether to return the raw error or wrap it in a new error. Default is false.
 	IsIgnorableErrorHandler func(error) bool // indicates whether to ignore the error or not. Default is nil.
