@@ -3,6 +3,7 @@ package devtoolkit
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 type (
@@ -21,6 +22,10 @@ type ProcessChain[T any] interface {
 	// AddLink adds a new link, identified by a string key, to the chain of operations.
 	// It returns an error if the provided link function is nil.
 	AddLink(string, LinkFn[T]) error
+
+	// AddLinkWithWait adds a new link, identified by a string key, to the chain of operations.
+	// It returns an error if the provided link function is nil.
+	AddLinkWithWait(s string, l LinkFn[T], wait time.Duration) error
 
 	// SetSaveStep sets a save step function that is executed after each link in the chain.
 	// This step is used to persist the state of the data after each operation.
@@ -52,7 +57,6 @@ func setProcessChainOptionsDefaults(opts *ProcessChainOptions) *ProcessChainOpti
 			AddLinkNameToError: false,
 		}
 	}
-
 	return opts
 }
 
@@ -60,24 +64,32 @@ func setProcessChainOptionsDefaults(opts *ProcessChainOptions) *ProcessChainOpti
 func NewProcessChain[T any](opts *ProcessChainOptions) ProcessChain[T] {
 	opts = setProcessChainOptionsDefaults(opts)
 	return &processChain[T]{
-		links:              make(map[string]LinkFn[T]),
 		addLinkNameToError: opts.AddLinkNameToError,
 	}
 }
 
+type linkInfo[T any] struct {
+	name string
+	step LinkFn[T]
+	wait time.Duration
+}
+
 type processChain[T any] struct {
-	links              map[string]LinkFn[T]
-	linksSeq           []string
+	links              []*linkInfo[T]
 	saveStep           SaveStep[T]
 	addLinkNameToError bool
 }
 
 func (p *processChain[T]) AddLink(s string, l LinkFn[T]) error {
+	return p.AddLinkWithWait(s, l, 0)
+}
+
+func (p *processChain[T]) AddLinkWithWait(s string, l LinkFn[T], wait time.Duration) error {
 	if l == nil {
 		return ErrNilLinkFn
 	}
-	p.links[s] = l
-	p.linksSeq = append(p.linksSeq, s)
+	li := &linkInfo[T]{name: s, step: l, wait: wait}
+	p.links = append(p.links, li)
 	return nil
 }
 
@@ -86,9 +98,11 @@ func (p *processChain[T]) SetSaveStep(s SaveStep[T]) {
 }
 
 func (p *processChain[T]) GetChain() []string {
-	var cp = make([]string, len(p.linksSeq))
-	copy(cp, p.linksSeq)
-	return cp
+	var chain []string
+	for _, link := range p.links {
+		chain = append(chain, link.name)
+	}
+	return chain
 }
 
 func (p *processChain[T]) Execute(ctx context.Context, t T) ([]string, error) {
@@ -108,21 +122,26 @@ func (p *processChain[T]) ExecuteWithIgnorableLinks(ctx context.Context, t T, ig
 func (p *processChain[T]) execute(ctx context.Context, t T, ignorableLinks map[string]struct{}) ([]string, error) {
 	var successExecutedLinks []string
 
-	for _, link := range p.linksSeq {
+	for _, link := range p.links {
+		linkName := link.name
 
-		if _, ok := ignorableLinks[link]; ok {
-			successExecutedLinks = append(successExecutedLinks, link)
+		if _, ok := ignorableLinks[linkName]; ok {
+			successExecutedLinks = append(successExecutedLinks, linkName)
 			continue
 		}
 
-		if err := p.links[link](ctx, t); err != nil {
+		if err := link.step(ctx, t); err != nil {
 			if p.addLinkNameToError {
-				err = errors.New(link + ": " + err.Error())
+				err = errors.New(linkName + ": " + err.Error())
 			}
 			return successExecutedLinks, err
 		}
 
-		successExecutedLinks = append(successExecutedLinks, link)
+		successExecutedLinks = append(successExecutedLinks, linkName)
+
+		if link.wait > 0 {
+			time.Sleep(link.wait)
+		}
 
 		if p.saveStep != nil {
 			if err := p.saveStep(ctx, t, successExecutedLinks); err != nil {
