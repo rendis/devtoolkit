@@ -49,20 +49,25 @@ type Reader interface {
 
 // ReaderOptions holds options for configuring the CSV Reader.
 type ReaderOptions struct {
-	NoHeader  bool
-	Separator ReaderSeparator
+	NoHeader   bool
+	Separator  ReaderSeparator
+	TrimHeader bool
 }
 
 type csvReader struct {
 	headers        []string
 	headerPosition map[string]int
 	records        [][]string
+	trimHeader     bool
 }
 
 func (c *csvReader) SetHeader(header []string) {
 	c.headerPosition = make(map[string]int)
 	c.headers = header
 	for i, v := range header {
+		if c.trimHeader {
+			v = strings.TrimSpace(v)
+		}
 		c.headerPosition[v] = i
 	}
 }

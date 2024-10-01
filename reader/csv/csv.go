@@ -38,20 +38,23 @@ func NewCSVReaderFromPath(path string, optFns ...func(*ReaderOptions)) (Reader, 
 
 // NewCSVReader creates a new CSV Reader from an io.Reader with optional ReaderOptions.
 func NewCSVReader(r io.Reader, optFns ...func(*ReaderOptions)) (Reader, error) {
-	opt := &ReaderOptions{
-		NoHeader:  false,
-		Separator: CommaSeparator,
+	defaultOpt := &ReaderOptions{
+		NoHeader:   false,
+		Separator:  CommaSeparator,
+		TrimHeader: true,
 	}
 
 	for _, o := range optFns {
-		o(opt)
+		o(defaultOpt)
 	}
 
-	localReader := &csvReader{}
+	localReader := &csvReader{
+		trimHeader: defaultOpt.TrimHeader,
+	}
 	reader := csv.NewReader(r)
-	reader.Comma = rune(opt.Separator)
+	reader.Comma = rune(defaultOpt.Separator)
 
-	if err := localReader.loadRows(reader, opt); err != nil {
+	if err := localReader.loadRows(reader, defaultOpt); err != nil {
 		return nil, err
 	}
 
