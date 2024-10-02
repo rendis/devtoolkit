@@ -119,7 +119,7 @@ func (w *{{$wrapperName}}) Get{{.FieldNameUpperCamel}}Value(key {{.ComposedTypeD
 {{- if eq .IsPtr "true" }}
 // Is{{.FieldNameUpperCamel}}Nil returns true if {{$typeName}}.{{.OriginalName}} is nil
 func (w *{{$wrapperName}}) Is{{.FieldNameUpperCamel}}Nil() bool {
-	return w.{{$typeName}} == nil || w.{{$typeName}}.{{.OriginalName}} == nil
+	return w == nil || w.{{$typeName}}.{{.OriginalName}} == nil
 }
 
 // Get{{.FieldNameUpperCamel}}Value returns the value of {{$typeName}}.{{.OriginalName}} and a boolean indicating if the value is not nil
