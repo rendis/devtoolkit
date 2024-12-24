@@ -13,6 +13,7 @@ type (
 
 var (
 	ErrNilLinkFn = errors.New("nil link function")
+	ErrNilLink   = errors.New("nil link")
 )
 
 // ProcessChain defines an interface for a chain of operations (links) that can be executed
@@ -21,11 +22,11 @@ var (
 type ProcessChain[T any] interface {
 	// AddLink adds a new link to the chain of operations.
 	// It returns an error if the provided link function is nil.
-	AddLink(link LinkInfo[T]) error
+	AddLink(link *LinkInfo[T]) error
 
 	// AddLinks adds multiple links to the chain of operations.
 	// It returns an error if any of the provided link functions is nil.
-	AddLinks(links []LinkInfo[T]) error
+	AddLinks(links []*LinkInfo[T]) error
 
 	// SetSaveStep sets a save Step function that is executed after each link in the chain.
 	// This Step is used to persist the state of the data after each operation.
@@ -93,15 +94,19 @@ type processChain[T any] struct {
 	addLinkNameToError bool
 }
 
-func (p *processChain[T]) AddLink(link LinkInfo[T]) error {
+func (p *processChain[T]) AddLink(link *LinkInfo[T]) error {
+	if link == nil {
+		return ErrNilLink
+	}
+
 	if link.Step == nil {
 		return ErrNilLinkFn
 	}
-	p.links = append(p.links, &link)
+	p.links = append(p.links, link)
 	return nil
 }
 
-func (p *processChain[T]) AddLinks(links []LinkInfo[T]) error {
+func (p *processChain[T]) AddLinks(links []*LinkInfo[T]) error {
 	for _, link := range links {
 		if err := p.AddLink(link); err != nil {
 			return err
