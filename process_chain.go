@@ -75,13 +75,13 @@ type LinkInfo[T any] struct {
 	WaitAfter  time.Duration
 }
 
-func (l *LinkInfo[T]) SetWaitBefore(d time.Duration) LinkInfo[T] {
+func (l *LinkInfo[T]) WithWaitBefore(d time.Duration) LinkInfo[T] {
 	var newLink = *l
 	newLink.WaitBefore = d
 	return newLink
 }
 
-func (l *LinkInfo[T]) SetWaitAfter(d time.Duration) LinkInfo[T] {
+func (l *LinkInfo[T]) WithWaitAfter(d time.Duration) LinkInfo[T] {
 	var newLink = *l
 	newLink.WaitAfter = d
 	return newLink
